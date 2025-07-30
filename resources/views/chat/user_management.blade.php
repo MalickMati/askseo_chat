@@ -275,7 +275,7 @@
                 if (!isSearching) {
                     fetchUsers();
                 }
-            }, 3000);
+            }, 10000);
             window.addEventListener('DOMContentLoaded', fetchUsers);
         });
     </script>

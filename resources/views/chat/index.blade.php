@@ -345,12 +345,12 @@
 
                     if (isImage) {
                         content = `<a href="${fileUrl}" target="_blank">
-                                                 <img src="${fileUrl}" class="message-image-preview" alt="${fileName}" loading="lazy">
-                                               </a>`;
+                            <img src="${fileUrl}" class="message-image-preview" alt="${fileName}" loading="lazy">
+                        </a>`;
                     } else {
                         content = `<a href="${fileUrl}" download class="file-download-link">
-                                                 ${fileName}
-                                               </a>`;
+                            ${fileName}
+                        </a>`;
                     }
                 } else {
                     content = msg.message || '';

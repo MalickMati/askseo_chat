@@ -7,7 +7,7 @@
         Back
     </button>
     <div class="logo">
-        <img src="{{ asset('assets/images/logo.png') }}" alt="" style="height:25px;">
+        <img src="{{ asset('favicon.ico') }}" alt="" style="height:25px;">
         ASKSEO
     </div>
     <h1>{{ $heading }}</h1>

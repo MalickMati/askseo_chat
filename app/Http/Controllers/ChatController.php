@@ -59,7 +59,7 @@ class ChatController extends Controller
             $request->validate([
                 'group_id' => 'required|exists:groups,id',
                 'message' => 'nullable|string|max:1000',
-                'file' => 'nullable|file|max:10240',
+                'file' => 'nullable|file|max:153600',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([

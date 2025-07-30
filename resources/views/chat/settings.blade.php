@@ -1,6 +1,6 @@
 @extends('layouts.chat-settings')
 
-@section('title', '{{ $name }} | Settings')
+@section('title', 'User | Settings')
 
 @section('form-section')
     <form class="settings-form" id="settingsForm" autocomplete="off">
@@ -132,7 +132,7 @@
             const uploadTrigger = document.getElementById('uploadTrigger');
 
             backButton.addEventListener('click', function () {
-                window.history.back();
+                window.location.href = '/chat';
             });
 
             cancelBtn.addEventListener('click', function () {

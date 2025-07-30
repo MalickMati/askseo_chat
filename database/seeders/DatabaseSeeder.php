@@ -25,6 +25,15 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
             'status_mode' => 'offline'
         ]);
+        User::factory()->create([
+            'name' => 'Developer',
+            'email' => 'developer@askseo.com',
+            'password' => Hash::make('password123'),
+            'email_verified_at' => now(),
+            'type' => 'super_admin',
+            'status' => 'active',
+            'status_mode' => 'offline'
+        ]);
 
         Group::create(['name' => 'ASK SEO TEAM']);
         GroupMember::create(['group_id' => '1', 'user_id' => '1']);
