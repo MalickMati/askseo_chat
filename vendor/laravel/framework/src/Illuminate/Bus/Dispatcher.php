@@ -52,17 +52,11 @@ class Dispatcher implements QueueingDispatcher
     protected $queueResolver;
 
     /**
-     * Indicates if dispatching after response is disabled.
-     *
-     * @var bool
-     */
-    protected $allowsDispatchingAfterResponses = true;
-
-    /**
      * Create a new command dispatcher instance.
      *
      * @param  \Illuminate\Contracts\Container\Container  $container
      * @param  \Closure|null  $queueResolver
+     * @return void
      */
     public function __construct(Container $container, ?Closure $queueResolver = null)
     {
@@ -80,8 +74,8 @@ class Dispatcher implements QueueingDispatcher
     public function dispatch($command)
     {
         return $this->queueResolver && $this->commandShouldBeQueued($command)
-            ? $this->dispatchToQueue($command)
-            : $this->dispatchNow($command);
+                        ? $this->dispatchToQueue($command)
+                        : $this->dispatchNow($command);
     }
 
     /**
@@ -115,7 +109,9 @@ class Dispatcher implements QueueingDispatcher
     {
         $uses = class_uses_recursive($command);
 
-        if (isset($uses[InteractsWithQueue::class], $uses[Queueable::class]) && ! $command->job) {
+        if (in_array(InteractsWithQueue::class, $uses) &&
+            in_array(Queueable::class, $uses) &&
+            ! $command->job) {
             $command->setJob(new SyncJob($this->container, json_encode([]), 'sync', 'sync'));
         }
 
@@ -221,7 +217,7 @@ class Dispatcher implements QueueingDispatcher
     {
         $connection = $command->connection ?? null;
 
-        $queue = ($this->queueResolver)($connection);
+        $queue = call_user_func($this->queueResolver, $connection);
 
         if (! $queue instanceof Queue) {
             throw new RuntimeException('Queue resolver did not return a Queue implementation.');
@@ -243,11 +239,19 @@ class Dispatcher implements QueueingDispatcher
      */
     protected function pushCommandToQueue($queue, $command)
     {
-        if (isset($command->delay)) {
-            return $queue->later($command->delay, $command, queue: $command->queue ?? null);
+        if (isset($command->queue, $command->delay)) {
+            return $queue->laterOn($command->queue, $command->delay, $command);
         }
 
-        return $queue->push($command, queue: $command->queue ?? null);
+        if (isset($command->queue)) {
+            return $queue->pushOn($command->queue, $command);
+        }
+
+        if (isset($command->delay)) {
+            return $queue->later($command->delay, $command);
+        }
+
+        return $queue->push($command);
     }
 
     /**
@@ -259,12 +263,6 @@ class Dispatcher implements QueueingDispatcher
      */
     public function dispatchAfterResponse($command, $handler = null)
     {
-        if (! $this->allowsDispatchingAfterResponses) {
-            $this->dispatchSync($command);
-
-            return;
-        }
-
         $this->container->terminating(function () use ($command, $handler) {
             $this->dispatchSync($command, $handler);
         });
@@ -292,30 +290,6 @@ class Dispatcher implements QueueingDispatcher
     public function map(array $map)
     {
         $this->handlers = array_merge($this->handlers, $map);
-
-        return $this;
-    }
-
-    /**
-     * Allow dispatching after responses.
-     *
-     * @return $this
-     */
-    public function withDispatchingAfterResponses()
-    {
-        $this->allowsDispatchingAfterResponses = true;
-
-        return $this;
-    }
-
-    /**
-     * Disable dispatching after responses.
-     *
-     * @return $this
-     */
-    public function withoutDispatchingAfterResponses()
-    {
-        $this->allowsDispatchingAfterResponses = false;
 
         return $this;
     }

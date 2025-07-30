@@ -35,6 +35,7 @@ class ArrayStore extends TaggableStore implements LockProvider
      * Create a new Array store.
      *
      * @param  bool  $serializesValues
+     * @return void
      */
     public function __construct($serializesValues = false)
     {
@@ -44,7 +45,7 @@ class ArrayStore extends TaggableStore implements LockProvider
     /**
      * Retrieve an item from the cache by key.
      *
-     * @param  string  $key
+     * @param  string|array  $key
      * @return mixed
      */
     public function get($key)

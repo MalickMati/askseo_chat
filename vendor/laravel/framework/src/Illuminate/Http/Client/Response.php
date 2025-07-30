@@ -3,17 +3,11 @@
 namespace Illuminate\Http\Client;
 
 use ArrayAccess;
-use GuzzleHttp\Psr7\StreamWrapper;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Fluent;
 use Illuminate\Support\Traits\Macroable;
 use LogicException;
-use Stringable;
 
-/**
- * @mixin \Psr\Http\Message\ResponseInterface
- */
-class Response implements ArrayAccess, Stringable
+class Response implements ArrayAccess
 {
     use Concerns\DeterminesStatusCode, Macroable {
         __call as macroCall;
@@ -48,16 +42,10 @@ class Response implements ArrayAccess, Stringable
     public $transferStats;
 
     /**
-     * The length at which request exceptions will be truncated.
-     *
-     * @var int<1, max>|false|null
-     */
-    protected $truncateExceptionsAt = null;
-
-    /**
      * Create a new response instance.
      *
      * @param  \Psr\Http\Message\MessageInterface  $response
+     * @return void
      */
     public function __construct($response)
     {
@@ -112,30 +100,7 @@ class Response implements ArrayAccess, Stringable
      */
     public function collect($key = null)
     {
-        return new Collection($this->json($key));
-    }
-
-    /**
-     * Get the JSON decoded body of the response as a fluent object.
-     *
-     * @param  string|null  $key
-     * @return \Illuminate\Support\Fluent
-     */
-    public function fluent($key = null)
-    {
-        return new Fluent((array) $this->json($key));
-    }
-
-    /**
-     * Get the body of the response as a PHP resource.
-     *
-     * @return resource
-     *
-     * @throws \InvalidArgumentException
-     */
-    public function resource()
-    {
-        return StreamWrapper::getResource($this->response->getBody());
+        return Collection::make($this->json($key));
     }
 
     /**
@@ -242,7 +207,7 @@ class Response implements ArrayAccess, Stringable
     /**
      * Execute the given callback if there was a server or client error.
      *
-     * @param  callable|(\Closure(\Illuminate\Http\Client\Response): mixed)  $callback
+     * @param  callable  $callback
      * @return $this
      */
     public function onError(callable $callback)
@@ -304,25 +269,14 @@ class Response implements ArrayAccess, Stringable
     public function toException()
     {
         if ($this->failed()) {
-            $originalTruncateAt = RequestException::$truncateAt;
-
-            try {
-                if ($this->truncateExceptionsAt !== null) {
-                    $this->truncateExceptionsAt === false
-                        ? RequestException::dontTruncate()
-                        : RequestException::truncateAt($this->truncateExceptionsAt);
-                }
-
-                return new RequestException($this);
-            } finally {
-                RequestException::$truncateAt = $originalTruncateAt;
-            }
+            return new RequestException($this);
         }
     }
 
     /**
      * Throw an exception if a server or client error occurred.
      *
+     * @param  \Closure|null  $callback
      * @return $this
      *
      * @throws \Illuminate\Http\Client\RequestException
@@ -346,6 +300,7 @@ class Response implements ArrayAccess, Stringable
      * Throw an exception if a server or client error occurred and the given condition evaluates to true.
      *
      * @param  \Closure|bool  $condition
+     * @param  \Closure|null  $throwCallback
      * @return $this
      *
      * @throws \Illuminate\Http\Client\RequestException
@@ -358,7 +313,7 @@ class Response implements ArrayAccess, Stringable
     /**
      * Throw an exception if the response status code matches the given code.
      *
-     * @param  int|(\Closure(int, \Illuminate\Http\Client\Response): bool)|callable  $statusCode
+     * @param  callable|int  $statusCode
      * @return $this
      *
      * @throws \Illuminate\Http\Client\RequestException
@@ -376,7 +331,7 @@ class Response implements ArrayAccess, Stringable
     /**
      * Throw an exception unless the response status code matches the given code.
      *
-     * @param  int|(\Closure(int, \Illuminate\Http\Client\Response): bool)|callable  $statusCode
+     * @param  callable|int  $statusCode
      * @return $this
      *
      * @throws \Illuminate\Http\Client\RequestException
@@ -412,93 +367,6 @@ class Response implements ArrayAccess, Stringable
     public function throwIfServerError()
     {
         return $this->serverError() ? $this->throw() : $this;
-    }
-
-    /**
-     * Indicate that request exceptions should be truncated to the given length.
-     *
-     * @param  int<1, max>  $length
-     * @return $this
-     */
-    public function truncateExceptionsAt(int $length)
-    {
-        $this->truncateExceptionsAt = $length;
-
-        return $this;
-    }
-
-    /**
-     * Indicate that request exceptions should not be truncated.
-     *
-     * @return $this
-     */
-    public function dontTruncateExceptions()
-    {
-        $this->truncateExceptionsAt = false;
-
-        return $this;
-    }
-
-    /**
-     * Dump the content from the response.
-     *
-     * @param  string|null  $key
-     * @return $this
-     */
-    public function dump($key = null)
-    {
-        $content = $this->body();
-
-        $json = json_decode($content);
-
-        if (json_last_error() === JSON_ERROR_NONE) {
-            $content = $json;
-        }
-
-        if (! is_null($key)) {
-            dump(data_get($content, $key));
-        } else {
-            dump($content);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Dump the content from the response and end the script.
-     *
-     * @param  string|null  $key
-     * @return never
-     */
-    public function dd($key = null)
-    {
-        $this->dump($key);
-
-        exit(1);
-    }
-
-    /**
-     * Dump the headers from the response.
-     *
-     * @return $this
-     */
-    public function dumpHeaders()
-    {
-        dump($this->headers());
-
-        return $this;
-    }
-
-    /**
-     * Dump the headers from the response and end the script.
-     *
-     * @return never
-     */
-    public function ddHeaders()
-    {
-        $this->dumpHeaders();
-
-        exit(1);
     }
 
     /**
@@ -570,7 +438,7 @@ class Response implements ArrayAccess, Stringable
     public function __call($method, $parameters)
     {
         return static::hasMacro($method)
-            ? $this->macroCall($method, $parameters)
-            : $this->response->{$method}(...$parameters);
+                    ? $this->macroCall($method, $parameters)
+                    : $this->response->{$method}(...$parameters);
     }
 }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Testing\Fakes\EventFake;
 
 /**
- * @method static void listen(\Illuminate\Events\QueuedClosure|callable|array|string $events, \Illuminate\Events\QueuedClosure|callable|array|string|null $listener = null)
+ * @method static void listen(\Closure|string|array $events, \Closure|string|array|null $listener = null)
  * @method static bool hasListeners(string $eventName)
  * @method static bool hasWildcardListeners(string $eventName)
  * @method static void push(string $event, object|array $payload = [])
@@ -34,7 +34,6 @@ use Illuminate\Support\Testing\Fakes\EventFake;
  * @method static void assertNothingDispatched()
  * @method static \Illuminate\Support\Collection dispatched(string $event, callable|null $callback = null)
  * @method static bool hasDispatched(string $event)
- * @method static array dispatchedEvents()
  *
  * @see \Illuminate\Events\Dispatcher
  * @see \Illuminate\Support\Testing\Fakes\EventFake
@@ -50,8 +49,8 @@ class Event extends Facade
     public static function fake($eventsToFake = [])
     {
         $actualDispatcher = static::isFake()
-            ? static::getFacadeRoot()->dispatcher
-            : static::getFacadeRoot();
+                ? static::getFacadeRoot()->dispatcher
+                : static::getFacadeRoot();
 
         return tap(new EventFake($actualDispatcher, $eventsToFake), function ($fake) {
             static::swap($fake);
@@ -89,14 +88,12 @@ class Event extends Facade
 
         static::fake($eventsToFake);
 
-        try {
-            return $callable();
-        } finally {
+        return tap($callable(), function () use ($originalDispatcher) {
             static::swap($originalDispatcher);
 
             Model::setEventDispatcher($originalDispatcher);
             Cache::refreshEventDispatcher();
-        }
+        });
     }
 
     /**
@@ -112,14 +109,12 @@ class Event extends Facade
 
         static::fakeExcept($eventsToAllow);
 
-        try {
-            return $callable();
-        } finally {
+        return tap($callable(), function () use ($originalDispatcher) {
             static::swap($originalDispatcher);
 
             Model::setEventDispatcher($originalDispatcher);
             Cache::refreshEventDispatcher();
-        }
+        });
     }
 
     /**

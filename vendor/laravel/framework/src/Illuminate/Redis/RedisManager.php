@@ -64,6 +64,7 @@ class RedisManager implements Factory
      * @param  \Illuminate\Contracts\Foundation\Application  $app
      * @param  string  $driver
      * @param  array  $config
+     * @return void
      */
     public function __construct($app, $driver, array $config)
     {
@@ -191,7 +192,7 @@ class RedisManager implements Factory
         }
 
         return array_filter($parsed, function ($key) {
-            return $key !== 'driver';
+            return ! in_array($key, ['driver'], true);
         }, ARRAY_FILTER_USE_KEY);
     }
 
@@ -254,9 +255,6 @@ class RedisManager implements Factory
      *
      * @param  string  $driver
      * @param  \Closure  $callback
-     *
-     * @param-closure-this  $this  $callback
-     *
      * @return $this
      */
     public function extend($driver, Closure $callback)
