@@ -6,6 +6,7 @@
     <x-chat_sidebar_menu></x-chat_sidebar_menu>
     <x-chat_menu></x-chat_menu>
     <x-add_user_in_group_modal></x-add_user_in_group_modal>
+    <x-group_members_modal></x-group_members_modal>
 
     <div id="notification-toast" class="notification-toast hidden">
         <span id="notification-message"></span>
@@ -117,22 +118,26 @@
                 if (activeGroupId) {
                     // Group-specific menu
                     chatMenu.innerHTML = `
-                                                    ${isAdmin ? `<div class="menu-item" data-group-id="${activeGroupId}" onclick="openAddMemberModal(activeGroupId);">
-                                                        <svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1" fill="currentcolor"/></svg>
-                                                        <span>Add Member</span>
-                                                    </div>` : ''}
-                                                    <div class="menu-item" data-group-id="${activeGroupId}" onclick="leave_chat_group(activeGroupId);">
-                                                        <svg width="20" height="20" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentcolor"><path fill-rule="evenodd" d="M11.707 3.293 15.414 7l-3.707 3.707a1 1 0 0 1-1.414-1.414L11.586 8H4.5a1.5 1.5 0 1 0 0 3H6a1 1 0 1 1 0 2H4.5a3.5 3.5 0 1 1 0-7h7.086l-1.293-1.293a1 1 0 1 1 1.414-1.414"/></svg>
-                                                        <span>Leave Group</span>
-                                                    </div>
-                                                `;
+                                ${isAdmin ? `<div class="menu-item" data-group-id="${activeGroupId}" onclick="openAddMemberModal(activeGroupId);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1" fill="currentcolor"/></svg>
+                                    <span>Add Member</span>
+                                </div>` : ''}
+                                <div class="menu-item" data-group-id="${activeGroupId}" onclick="openGroupMembersModal(activeGroupId);">
+                                    <svg width="20" height="20" fill="currentcolor" viewBox="0 0 100 100" xml:space="preserve"><path d="M57 44H45c-3.3 0-6 2.7-6 6v9c0 1.1.5 2.1 1.2 2.8S41.9 63 43 63v9c0 3.3 2.7 6 6 6h4c3.3 0 6-2.7 6-6v-9c1.1 0 2.1-.4 2.8-1.2.7-.7 1.2-1.7 1.2-2.8v-9c0-3.3-2.7-6-6-6"/><circle cx="51" cy="33" r="7"/><path d="M36.6 66.7c-.2-.2-.5-.4-.7-.6-1.9-2-3-4.5-3-7.1v-9c0-3.2 1.3-6.2 3.4-8.3.6-.6.1-1.7-.7-1.7H26c-3.3 0-6 2.7-6 6v9c0 1.1.5 2.1 1.2 2.8S22.9 59 24 59v9c0 3.3 2.7 6 6 6h4c.9 0 1.7-.2 2.4-.5q.6-.3.6-.9v-5.1c0-.3-.1-.6-.4-.8"/><circle cx="32" cy="29" r="7"/><path d="M76 40h-9.6c-.9 0-1.3 1-.7 1.7 2.1 2.2 3.4 5.1 3.4 8.3v9c0 2.6-1 5.1-3 7.1-.2.2-.4.4-.7.6-.2.2-.4.5-.4.8v5.1c0 .4.2.8.6.9.7.3 1.5.5 2.4.5h4c3.3 0 6-2.7 6-6v-9c1.1 0 2.1-.4 2.8-1.2.7-.7 1.2-1.7 1.2-2.8v-9c0-3.3-2.7-6-6-6"/><circle cx="70" cy="29" r="7"/></svg>
+                                    <span>Show Members</span>
+                                </div>
+                                <div class="menu-item" data-group-id="${activeGroupId}" onclick="leave_chat_group(activeGroupId);">
+                                    <svg width="20" height="20" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentcolor"><path fill-rule="evenodd" d="M11.707 3.293 15.414 7l-3.707 3.707a1 1 0 0 1-1.414-1.414L11.586 8H4.5a1.5 1.5 0 1 0 0 3H6a1 1 0 1 1 0 2H4.5a3.5 3.5 0 1 1 0-7h7.086l-1.293-1.293a1 1 0 1 1 1.414-1.414"/></svg>
+                                    <span>Leave Group</span>
+                                </div>
+                            `;
                 } else if (activeReceiverId) {
                     chatMenu.innerHTML = `
-                                                <div class="menu-item" data-group-id="${activeReceiverId}}">
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentcolor"><path fill-rule="evenodd" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2m6.32 5.095L7.096 18.321A8 8 0 0 0 18.32 7.096M12 4a8 8 0 0 0-6.32 12.905L16.904 5.679A7.97 7.97 0 0 0 12 4"/></svg>
-                                                    <span>Block</span>
-                                                </div>
-                                                `;
+                            <div class="menu-item" data-group-id="${activeReceiverId}}">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentcolor"><path fill-rule="evenodd" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2m6.32 5.095L7.096 18.321A8 8 0 0 0 18.32 7.096M12 4a8 8 0 0 0-6.32 12.905L16.904 5.679A7.97 7.97 0 0 0 12 4"/></svg>
+                                <span>Block</span>
+                            </div>
+                            `;
                 } else {
                     chatMenu.innerHTML = '';
                 }
@@ -209,12 +214,10 @@
             });
 
             setInterval(() => {
-                if (!isTabActive) {
+                if (!isTabActive || isMediaPlaying) {
                     return;
                 }
-                if (isMediaPlaying) {
-                    return;
-                }
+
                 if (activeReceiverId) {
                     loadMessages(activeReceiverId);
                 } else if (activeGroupId) {
@@ -233,8 +236,8 @@
             @foreach ($allusers as $user)
                 {{ $user['id'] }}: "{{ addslashes($user['username']) }}",
             @endforeach
-                                {{ $currentUser['id'] }}: "{{ addslashes($currentUser['username']) }}"
-                            };
+                                        {{ $currentUser['id'] }}: "{{ addslashes($currentUser['username']) }}"
+                                    };
 
         let activeReceiverId = null;
         let activeGroupId = null;
@@ -260,52 +263,40 @@
         });
 
 
-        let lastMessageTimestamps = {}; // {chatId: 'timestamp'}
-
         function loadMessages(receiverId) {
-            const after = lastMessageTimestamps[receiverId] || '';
-            fetch(`/messages/${receiverId}?after=${encodeURIComponent(after)}`)
+            fetch(`/messages/${receiverId}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.messages && data.messages.length > 0) {
+                    if (data.messages) {
                         appendMessages(data.messages, currentUserId, usersMap, receiverId);
-
-                        // Update last seen timestamp
-                        const last = data.messages[data.messages.length - 1];
-                        lastMessageTimestamps[receiverId] = last.created_at;
-
-                        markMessagesAsRead(receiverId);
+                        if (receiverId) {
+                            markMessagesAsRead(receiverId);
+                        }
                     }
                 })
                 .catch(err => console.error("Failed to load messages", err));
         }
 
         function loadGroupMessages(groupId) {
-            const after = lastMessageTimestamps[groupId] || '';
-            fetch(`/group-messages/${groupId}?after=${encodeURIComponent(after)}`)
+            fetch(`/group-messages/${groupId}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.messages && data.messages.length > 0) {
+                    if (data.messages) {
                         appendMessages(data.messages, currentUserId, usersMap, groupId);
-
-                        const last = data.messages[data.messages.length - 1];
-                        lastMessageTimestamps[groupId] = last.sent_at;
-
-                        fetch(`/group/${groupId}/mark-read`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                'Content-Type': 'application/json'
-                            }
-                        });
                     }
+                    fetch(`/group/${groupId}/mark-read`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Content-Type': 'application/json'
+                        }
+                    });
                 })
                 .catch(err => {
                     console.error("Failed to load group messages", err);
                     showNotificationToast(3, 'Failed to load group messages!');
                 });
         }
-
 
         function formatTimestamp(datetime) {
             const date = new Date(datetime);
@@ -328,28 +319,40 @@
 
         function appendMessages(messages, currentUserId, usersMap, activeUserId) {
             const container = document.getElementById('messagesContainer');
-            const newMessages = [];
+            if (!container.messageIds) {
+                container.messageIds = new Set();
+            }
 
+            const newMessages = [];
             const isInitialLoad = container.innerHTML.trim() === '';
             const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
 
+            let appended = false;
+
             messages.forEach(msg => {
+                if (container.messageIds.has(msg.id)) return; // Skip already added messages
+
+                container.messageIds.add(msg.id); // Mark as rendered
+                appended = true;
+
                 const isNew = !msg.read_at && msg.sender_id !== currentUserId;
                 if (isNew) {
                     newMessages.push(msg);
                 }
+
                 const isSent = msg.sender_id === currentUserId;
                 const isRead = !!msg.read_at;
                 const ticks = isRead
                     ? '<span class="message-ticks read"><svg width="15" height="15" viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.03 11.47a.75.75 0 0 0-1.06 1.06zM8.5 16l-.53.53a.75.75 0 0 0 1.06 0zm8.53-7.47a.75.75 0 0 0-1.06-1.06zm-8 2.94a.75.75 0 0 0-1.06 1.06zM12.5 16l-.53.53a.75.75 0 0 0 1.06 0zm8.53-7.47a.75.75 0 0 0-1.06-1.06zm-17.06 4 4 4 1.06-1.06-4-4zm5.06 4 8-8-1.06-1.06-8 8zm-1.06-4 4 4 1.06-1.06-4-4zm5.06 4 8-8-1.06-1.06-8 8z" fill="currentcolor"/></svg></span>'
                     : '<span class="message-ticks"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 7 9.429 17 6 13" stroke="currentcolor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+
                 const timeFormatted = formatTimestamp(msg.sent_at || msg.created_at);
                 const senderName = usersMap[msg.sender_id] || "Unknown";
 
                 const messageInfo = document.createElement('div');
                 messageInfo.classList.add('message-info');
-                let content = "";
 
+                let content = "";
                 if (msg.file_path) {
                     const fileUrl = `/storage/${msg.file_path}`;
                     const fileName = msg.original_filename || msg.file_path.split('/').pop();
@@ -361,58 +364,52 @@
 
                     if (isImage) {
                         content = `<a href="${fileUrl}" target="_blank">
-                                        <img src="${fileUrl}" class="message-image-preview" alt="${fileName}" loading="lazy">
-                                    </a>`;
+                                            <img src="${fileUrl}" class="message-image-preview" alt="${fileName}" loading="lazy">
+                                        </a>`;
                     } else if (isVideo) {
                         content = `<video controls class="message-video-preview" loading="lazy">
-                                        <source src="${fileUrl}" type="video/${ext}">
-                                        Your browser does not support the video tag.
-                                    </video>`;
+                                            <source src="${fileUrl}" type="video/${ext}">
+                                            Your browser does not support the video tag.
+                                        </video>`;
                     } else if (isAudio) {
                         content = `<audio controls class="message-audio-preview" loading="lazy">
-                                        <source src="${fileUrl}" type="audio/${ext}">
-                                        Your browser does not support the audio element.
-                                    </audio>`;
+                                            <source src="${fileUrl}" type="audio/${ext}">
+                                            Your browser does not support the audio element.
+                                        </audio>`;
                     } else {
                         content = `<a href="${fileUrl}" download class="file-download-link">
-                                        ${fileName}
-                                    </a>`;
+                                            ${fileName}
+                                        </a>`;
                     }
                 } else {
                     content = msg.message || '';
                 }
 
+                messageInfo.innerHTML = isSent
+                    ? `<div class="message message-sent">
+                                    ${content}
+                                    <div class="message-time">${timeFormatted} ${ticks}</div>
+                               </div>`
+                    : `<span class="message-sender">${senderName}</span>
+                               <div class="message message-received">
+                                   ${content}
+                                   <div class="message-time">${timeFormatted}</div>
+                               </div>`;
 
-                if (!isSent) {
-                    messageInfo.innerHTML = `
-                            <span class="message-sender">${senderName}</span>
-                            <div class="message message-received">
-                                ${content}
-                                <div class="message-time">${timeFormatted}</div>
-                            </div>
-                        `;
-                } else {
-                    messageInfo.innerHTML = `
-                            <div class="message message-sent">
-                                ${content}
-                                <div class="message-time">
-                                    ${timeFormatted} ${ticks}
-                                </div>
-                            </div>
-                        `;
-                }
-
-                if (!isTabActive && newMessages.length > 0) {
-                    const latest = newMessages[newMessages.length - 1];
-                    const senderName = usersMap[latest.sender_id] || "New Message";
-                    const preview = latest.message?.slice(0, 50) || "File sent";
-                    showChatNotification(senderName, preview);
-                }
                 container.appendChild(messageInfo);
             });
+
             attachMediaListeners();
-            if (isInitialLoad || isAtBottom) {
+
+            if ((isInitialLoad || isAtBottom) && appended) {
                 container.scrollTop = container.scrollHeight;
+            }
+
+            if (!isTabActive && newMessages.length > 0) {
+                const latest = newMessages[newMessages.length - 1];
+                const senderName = usersMap[latest.sender_id] || "New Message";
+                const preview = latest.message?.slice(0, 50) || "File sent";
+                showChatNotification(senderName, preview);
             }
         }
 
@@ -486,9 +483,9 @@
                         document.getElementById('filePreviewContainer').innerHTML = '';
                         document.getElementById('messageInput').value = '';
                         sendbutton.innerHTML = `
-                                <svg width="20" height="20" viewBox="0 0 15 15" fill="none">
-                                    <path d="M14.954.71a.5.5 0 0 1-.1.144L5.4 10.306l2.67 4.451a.5.5 0 0 0 .889-.06zM4.694 9.6.243 6.928a.5.5 0 0 1 .06-.889L14.293.045a.5.5 0 0 0-.146.101z" fill="#fff" />
-                                </svg>`;
+                                        <svg width="20" height="20" viewBox="0 0 15 15" fill="none">
+                                            <path d="M14.954.71a.5.5 0 0 1-.1.144L5.4 10.306l2.67 4.451a.5.5 0 0 0 .889-.06zM4.694 9.6.243 6.928a.5.5 0 0 1 .06-.889L14.293.045a.5.5 0 0 0-.146.101z" fill="#fff" />
+                                        </svg>`;
 
                         if (activeReceiverId) {
                             loadMessages(activeReceiverId);
@@ -504,9 +501,6 @@
                     alert("An error occurred while sending the message.");
                 });
         }
-
-
-
         // Handle click
         document.getElementById('sendMessageBtn').addEventListener('click', function () {
             sendMessage();
@@ -532,39 +526,39 @@
                     // Render groups
                     data.groups.forEach(group => {
                         chatList.innerHTML += `
-                            <div class="chat-item" data-group-id="${group.id}">
-                                <img src="/assets/images/logo.png" alt="Group" class="chat-avatar">
-                                <div class="chat-details">
-                                    <div class="chat-name-time">
-                                        <span class="chat-name">${group.name}</span>
-                                        <span class="chat-time">${group.last_time || ''}</span>
+                                    <div class="chat-item" data-group-id="${group.id}">
+                                        <img src="/assets/images/logo.png" alt="Group" class="chat-avatar">
+                                        <div class="chat-details">
+                                            <div class="chat-name-time">
+                                                <span class="chat-name">${group.name}</span>
+                                                <span class="chat-time">${group.last_time || ''}</span>
+                                            </div>
+                                            <div class="chat-last-message">
+                                                <span>${group.last_message || 'Group Chat'}</span>
+                                            </div>
+                                        </div>
+                                        ${group.unread_count > 0 ? `<div class="unread-badge">${group.unread_count}</div>` : ''}
                                     </div>
-                                    <div class="chat-last-message">
-                                        <span>${group.last_message || 'Group Chat'}</span>
-                                    </div>
-                                </div>
-                                ${group.unread_count > 0 ? `<div class="unread-badge">${group.unread_count}</div>` : ''}
-                            </div>
-                        `;
+                                `;
                     });
 
                     // Render users
                     data.users.forEach(user => {
                         chatList.innerHTML += `
-                            <div class="chat-item" data-user-id="${user.id}">
-                                <img src="${user.img || 'assets/images/default.png'}" class="chat-avatar ${user.status}">
-                                <div class="chat-details">
-                                    <div class="chat-name-time">
-                                        <span class="chat-name">${user.username}</span>
-                                        <span class="chat-time">${user.last_time || ''}</span>
+                                    <div class="chat-item" data-user-id="${user.id}">
+                                        <img src="${user.img || 'assets/images/default.png'}" class="chat-avatar ${user.status}">
+                                        <div class="chat-details">
+                                            <div class="chat-name-time">
+                                                <span class="chat-name">${user.username}</span>
+                                                <span class="chat-time">${user.last_time || ''}</span>
+                                            </div>
+                                            <div class="chat-last-message">
+                                                <span>${user.last_message || ''}</span>
+                                            </div>
+                                        </div>
+                                        ${user.unread_count > 0 ? `<div class="unread-badge">${user.unread_count}</div>` : ''}
                                     </div>
-                                    <div class="chat-last-message">
-                                        <span>${user.last_message || ''}</span>
-                                    </div>
-                                </div>
-                                ${user.unread_count > 0 ? `<div class="unread-badge">${user.unread_count}</div>` : ''}
-                            </div>
-                        `;
+                                `;
                     });
 
                     // Re-attach click events to new chat items
@@ -673,11 +667,11 @@
 
                         const li = document.createElement('li');
                         li.innerHTML = `
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="users[]" value="${user.id}" ${isMember ? 'checked disabled' : ''}>
-                                <span>${user.name}</span>
-                            </label>
-                        `;
+                                                                                                        <label class="flex items-center gap-2">
+                                                                                                            <input type="checkbox" name="users[]" value="${user.id}" ${isMember ? 'checked disabled' : ''}>
+                                                                                                            <span>${user.name}</span>
+                                                                                                        </label>
+                                                                                                    `;
                         userList.appendChild(li);
                     });
 
@@ -757,6 +751,37 @@
                 img.addEventListener('load', () => setTimeout(() => isMediaPlaying = false, 5000)); // image view timeout
             });
         }
-
     </script>
+    <script>
+        function openGroupMembersModal(groupId) {
+            fetch(`/group/${groupId}/members`)
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('groupMembersList');
+                    const count = document.getElementById('groupMembersCount');
+                    list.innerHTML = '';
+                    count.textContent = data.members.length;
+
+                    data.members.forEach(member => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                        <img src="${member.avatar_url || '/default-avatar.png'}" alt="avatar">
+                        <span>${member.name}</span>
+                    `;
+                        list.appendChild(li);
+                    });
+
+                    document.getElementById('groupMembersModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Failed to load group members:', error);
+                });
+        }
+
+        function closeGroupMembersModal() {
+            document.getElementById('groupMembersModal').style.display = 'none';
+        }
+    </script>
+
+
 @endsection

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
 class Message extends Model
 {
@@ -38,5 +39,15 @@ class Message extends Model
     public function reads()
     {
         return $this->hasMany(GroupMessageRead::class, 'message_id');
+    }
+
+    public function getCreatedAtAttribute($value)
+    {
+        return Carbon::parse($value)->setTimezone('Asia/Karachi');
+    }
+
+    public function getSentAtAttribute($value)
+    {
+        return Carbon::parse($value)->setTimezone('Asia/Karachi');
     }
 }

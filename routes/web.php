@@ -6,6 +6,7 @@ use App\Http\Controllers\ShowPageController;
 use App\Http\Controllers\ChatController;
 
 Route::fallback(function () { abort(404);});
+Route::fallback(function () { abort(500);});
 
 Route::get('/', [AuthController::class, 'showLogin']);
 
@@ -50,6 +51,7 @@ Route::get('/sidebar/data', [ChatController::class, 'getSidebarData']);
 
 Route::post('/groups/{group}/leave', [ChatController::class, 'leavegroup']);
 Route::get('/groups/{group}/members-list', [ChatController::class, 'membersList']);
+Route::get('/group/{id}/members', [ChatController::class, 'getMembers']);
 Route::post('/groups/{group}/add-members', [ChatController::class, 'addMembers']);
 
 Route::get('/add/user', function() {return view('chat.add_user');});

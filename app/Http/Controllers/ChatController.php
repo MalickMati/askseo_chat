@@ -17,7 +17,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class ChatController extends Controller
 {
-    public function getMessages(Request $request, $receiver_id)
+    public function getMessages($receiver_id)
     {
         $sender = User::where("email", session("user_email"))->first();
 
@@ -25,47 +25,33 @@ class ChatController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $after = $request->query('after'); // e.g., '2025-07-30 14:33:00'
-
-        $query = Message::where(function ($query) use ($sender, $receiver_id) {
+        $messages = Message::where(function ($query) use ($sender, $receiver_id) {
             $query->where('sender_id', $sender->id)
                 ->where('receiver_id', $receiver_id);
         })
             ->orWhere(function ($query) use ($sender, $receiver_id) {
                 $query->where('sender_id', $receiver_id)
                     ->where('receiver_id', $sender->id);
-            });
-
-        if ($after) {
-            $query->where('created_at', '>', $after);
-        }
-
-        $messages = $query->orderBy('created_at', 'asc')->get();
+            })
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         return response()->json([
             'messages' => $messages
         ]);
     }
 
-
-    public function getGroupMessages(Request $request, $groupId)
+    public function getGroupMessages($groupId)
     {
-        $after = $request->query('after'); // e.g., '2025-07-30 14:33:00'
-
-        $query = Message::where('group_id', $groupId);
-
-        if ($after) {
-            $query->where('sent_at', '>', $after);
-        }
-
-        $messages = $query->orderBy('sent_at', 'asc')->get();
+        $messages = Message::where('group_id', $groupId)
+            ->orderBy('sent_at', 'asc')
+            ->get();
 
         return response()->json([
             'success' => true,
             'messages' => $messages
         ]);
     }
-
 
     public function sendGroupMessage(Request $request)
     {
@@ -320,6 +306,7 @@ class ChatController extends Controller
         if (!session()->has('user_email')) {
             return redirect('/')->with('error', 'Session expired! Login Again');
         }
+
         $currentUser = User::where('email', session('user_email'))->first();
 
         // Get individual users (excluding current user)
@@ -365,10 +352,17 @@ class ChatController extends Controller
                     'last_message' => $lastMessage ? ($lastMessage->message ?? '[File]') : '',
                     'last_time' => $formattedTime,
                     'unread_count' => $unreadCount,
+                    'last_timestamp' => $lastMessage ? ($lastMessage->sent_at ?? $lastMessage->created_at) : null, // for sorting
                 ];
-            });
+            })
+            // Sort users by latest message timestamp descending
+            ->sortByDesc(function ($user) {
+                return $user['last_timestamp'];
+            })
+            // Re-index to reset numeric keys (important if you're returning JSON)
+            ->values();
 
-        // Only get groups the user is a member of
+        // Get groups the current user is in
         $groups = Group::whereHas('members', function ($q) use ($currentUser) {
             $q->where('user_id', $currentUser->id);
         })
@@ -377,18 +371,16 @@ class ChatController extends Controller
             ->map(function ($group) use ($currentUser) {
                 $lastMessage = $group->messages()->latest()->first();
 
-                // Count unread messages for this user in this group
                 $unreadCount = DB::table('messages')
                     ->leftJoin('group_message_reads', function ($join) use ($currentUser) {
-                    $join->on('messages.id', '=', 'group_message_reads.message_id')
-                        ->where('group_message_reads.user_id', '=', $currentUser->id);
-                })
+                        $join->on('messages.id', '=', 'group_message_reads.message_id')
+                            ->where('group_message_reads.user_id', '=', $currentUser->id);
+                    })
                     ->where('messages.group_id', $group->id)
                     ->where('messages.sender_id', '!=', $currentUser->id)
                     ->whereNull('group_message_reads.read_at')
                     ->count();
 
-                // Format time
                 $formattedTime = '';
                 if ($lastMessage) {
                     $sentAt = \Carbon\Carbon::parse($lastMessage->sent_at ?? $lastMessage->created_at);
@@ -419,7 +411,6 @@ class ChatController extends Controller
             'groups' => $groups
         ]);
     }
-
 
     public function markAsRead(Request $request)
     {
@@ -491,6 +482,26 @@ class ChatController extends Controller
             ]);
         }
     }
+
+    public function getMembers($id)
+    {
+        $group = Group::with(['members:id,name,email,image'])->findOrFail($id);
+
+        $members = $group->members->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar_url' => $user->image
+                    ? asset($user->image)
+                    : asset('assets/images/default.png'),
+            ];
+        });
+
+        return response()->json([
+            'members' => $members
+        ]);
+    }
+
 
     public function addMembers(Request $request, Group $group)
     {

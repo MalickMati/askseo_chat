@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 | ASK SEO</title>
+    <title>500 | ASKSEO</title>
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <style>
         :root {
@@ -164,9 +164,9 @@
 <body>
     <div class="particles" id="particles"></div>
     <div class="container">
-        <h1>404</h1>
-        <h2>Page Not Found</h2>
-        <p>Looks like you've ventured into the unknown. The page you're looking for doesn't exist or has been moved.</p>
+        <h1>500</h1>
+        <h2>Internal Server Error!</h2>
+        <p>Looks like the server is not capable of fulfilling your request at the moment. You can contact the <strong style="color:black;">admin</strong> for feedback and we will look into the problem.</p>
         <button class="back-button" onclick="window.history.back()">Take Me Back</button>
     </div>
 
