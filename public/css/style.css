@@ -763,6 +763,13 @@ body {
     margin-top: 5px;
 }
 
+
+.message-video-preview,
+.message-audio-preview {
+    max-width: 250px;
+    margin-top: 5px;
+}
+
 .file-download-link {
     color: #4a90e2;
     text-decoration: underline;

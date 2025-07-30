@@ -17,7 +17,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class ChatController extends Controller
 {
-    public function getMessages($receiver_id)
+    public function getMessages(Request $request, $receiver_id)
     {
         $sender = User::where("email", session("user_email"))->first();
 
@@ -25,33 +25,47 @@ class ChatController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $messages = Message::where(function ($query) use ($sender, $receiver_id) {
+        $after = $request->query('after'); // e.g., '2025-07-30 14:33:00'
+
+        $query = Message::where(function ($query) use ($sender, $receiver_id) {
             $query->where('sender_id', $sender->id)
                 ->where('receiver_id', $receiver_id);
         })
             ->orWhere(function ($query) use ($sender, $receiver_id) {
                 $query->where('sender_id', $receiver_id)
                     ->where('receiver_id', $sender->id);
-            })
-            ->orderBy('created_at', 'asc')
-            ->get();
+            });
+
+        if ($after) {
+            $query->where('created_at', '>', $after);
+        }
+
+        $messages = $query->orderBy('created_at', 'asc')->get();
 
         return response()->json([
             'messages' => $messages
         ]);
     }
 
-    public function getGroupMessages($groupId)
+
+    public function getGroupMessages(Request $request, $groupId)
     {
-        $messages = Message::where('group_id', $groupId)
-            ->orderBy('sent_at', 'asc')
-            ->get();
+        $after = $request->query('after'); // e.g., '2025-07-30 14:33:00'
+
+        $query = Message::where('group_id', $groupId);
+
+        if ($after) {
+            $query->where('sent_at', '>', $after);
+        }
+
+        $messages = $query->orderBy('sent_at', 'asc')->get();
 
         return response()->json([
             'success' => true,
             'messages' => $messages
         ]);
     }
+
 
     public function sendGroupMessage(Request $request)
     {
@@ -303,7 +317,7 @@ class ChatController extends Controller
 
     public function getSidebarData()
     {
-        if(!session()->has('user_email')){
+        if (!session()->has('user_email')) {
             return redirect('/')->with('error', 'Session expired! Login Again');
         }
         $currentUser = User::where('email', session('user_email'))->first();
@@ -409,8 +423,8 @@ class ChatController extends Controller
 
     public function markAsRead(Request $request)
     {
-        if(!Auth::check()){
-            return redirect('/login')->with('error','Session Expired! Login Again');
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Session Expired! Login Again');
         }
         $senderId = $request->sender_id;
         $currentUser = User::where('email', session('user_email'))->first();
@@ -424,8 +438,8 @@ class ChatController extends Controller
     }
     public function markGroupMessagesRead($groupId)
     {
-        if(!Auth::check()){
-            return redirect('/login')->with('error','Session Expired! Login Again');
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Session Expired! Login Again');
         }
         $currentUser = User::where('email', session('user_email'))->first();
 
@@ -451,8 +465,8 @@ class ChatController extends Controller
 
     public function leavegroup(Request $request, Group $group)
     {
-        if(!Auth::check()){
-            return redirect('/login')->with('error','Session Expired! Login Again');
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Session Expired! Login Again');
         }
         $user = User::where('email', '=', session('user_email'))->first();
 
@@ -463,8 +477,8 @@ class ChatController extends Controller
 
     public function membersList(Group $group)
     {
-        if(!Auth::check()){
-            return redirect('/login')->with('error','Session Expired! Login Again');
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Session Expired! Login Again');
         }
         $user = User::where('email', '=', session('user_email'))->first();
         if ($user->type === 'super_admin' || $user->type === 'admin' || $user->type === 'moderator') {
@@ -480,8 +494,8 @@ class ChatController extends Controller
 
     public function addMembers(Request $request, Group $group)
     {
-        if(!Auth::check()){
-            return redirect('/login')->with('error','Session Expired! Login Again');
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Session Expired! Login Again');
         }
         $user = User::where('email', '=', session('user_email'))->first();
 
