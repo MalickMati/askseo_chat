@@ -7,6 +7,7 @@
     --text-secondary: #a1a1a1;
     --success: #00ff9d;
     --error: #ff3860;
+    --warning: #ff9500;
 }
 
 * {
@@ -475,4 +476,49 @@ body {
 
 .terms-text a:hover {
     text-decoration: underline;
+}
+
+/* Notification Toast */
+.notification-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 16px;
+    z-index: 9999;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transition: all 0.4s ease;
+    color: #fff;
+}
+
+.notification-success {
+    background-color: var(--success);
+}
+
+.notification-warning {
+    background-color: var(--warning);
+}
+
+.notification-error {
+    background-color: var(--error);
+}
+
+.notification-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.notification-toast.hidden {
+    pointer-events: none;
+}
+
+#notification-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
 }

@@ -33,23 +33,28 @@ class ChatController extends Controller
                 $query->where('sender_id', $receiver_id)
                     ->where('receiver_id', $sender->id);
             })
-            ->orderBy('created_at', 'asc')
-            ->get();
+            ->orderBy('created_at', 'desc')
+            ->paginate(50); // Load 50 messages per page
 
         return response()->json([
-            'messages' => $messages
+            'messages' => $messages->items(),
+            'has_more' => $messages->hasMorePages(),
+            'next_page' => $messages->nextPageUrl()
         ]);
     }
 
     public function getGroupMessages($groupId)
     {
+        // Load more messages for groups (300) since they tend to be more active
         $messages = Message::where('group_id', $groupId)
-            ->orderBy('sent_at', 'asc')
-            ->get();
+            ->orderBy('sent_at', 'desc')
+            ->paginate(300);
 
         return response()->json([
             'success' => true,
-            'messages' => $messages
+            'messages' => $messages->items(),
+            'has_more' => $messages->hasMorePages(),
+            'next_page' => $messages->nextPageUrl()
         ]);
     }
 

@@ -19,6 +19,10 @@
         </svg>
         <span>Settings</span>
     </div>
+    <div class="menu-item" onclick="window.location.href='/user/attendance';">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#54656F" d="M7 11c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2s2 .9 2 2v1c0 1.1-.9 2-2 2m-2 6.993L9 18c.55 0 1-.45 1-1v-2c0-1.65-1.35-3-3-3s-3 1.35-3 3v2c0 .552.448.993 1 .993M19 18h-6a1 1 0 1 1 0-2h6a1 1 0 1 1 0 2m0-4h-6a1 1 0 1 1 0-2h6a1 1 0 1 1 0 2m0-4h-6a1 1 0 1 1 0-2h6a1 1 0 1 1 0 2"/><path fill="#54656F" d="M22 2H2C.9 2 0 2.9 0 4v16c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2m0 17.5c0 .28-.22.5-.5.5h-19c-.28 0-.5-.22-.5-.5v-15c0-.28.22-.5.5-.5h19c.28 0 .5.22.5.5z"/></svg>
+        <span>Attendance</span>
+    </div>
     <div class="menu-item" onclick="window.location.href='/logout';">
         <svg  width="18" fill="#54656F" height="18" viewBox="0 0 52 52"
             xml:space="preserve">

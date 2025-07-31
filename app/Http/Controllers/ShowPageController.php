@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Message;
 use App\Models\Group;
 use App\Models\GroupMember;
+use App\Models\Attandance;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -265,13 +267,14 @@ class ShowPageController extends Controller
     public function showaddgroup()
     {
         $user = User::where('email', '=', session('user_email'))->first();
-        if(!$user){
-            return redirect('/login')->with('error','Session Expired. Login again');
-        } elseif ($user->type !== 'super_admin' 
-            && $user->type !== 'admin' 
+        if (!$user) {
+            return redirect('/login')->with('error', 'Session Expired. Login again');
+        } elseif (
+            $user->type !== 'super_admin'
+            && $user->type !== 'admin'
             // && $user->type !== 'moderator'
-        ){
-            return redirect('/chat')->with('error','Admin not found!');
+        ) {
+            return redirect('/chat')->with('error', 'Admin not found!');
         }
         $users = User::where('email', '!=', session('user_email'))->get()->map(function ($user, $index) {
             return [
@@ -322,6 +325,164 @@ class ShowPageController extends Controller
             return response()->json(['success' => true, 'message' => 'Group created successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    }
+
+    public function showattendanceuser()
+    {
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Session not found! Login again');
+        }
+
+        $checkindetails = Attendance::where('user_id', '=', Auth::id())->latest()->first();
+
+        $checkin_time = optional($checkindetails?->check_in)->format('H:i');
+        $checkin_date = optional($checkindetails?->date)->format('Y-m-d');
+        $checkout_time = optional($checkindetails?->check_out)->format('H:i');
+        $worked_today = optional($checkindetails)->hours_worked;
+
+        if ($checkout_time) {
+            $checkout_date = $checkin_date;
+        } else {
+            $checkout_date = null;
+        }
+        $today = Carbon::today();
+
+        $hasAttendance = Attendance::where('user_id', Auth::id())
+            ->where('date', '=', $today)
+            ->exists();
+
+        return view('chat.user_checkin_settings', [
+            'username' => Auth::user()->name,
+            'checkin_time' => $checkin_time,
+            'checkin_date' => $checkin_date,
+            'checkout_time' => $checkout_time,
+            'worked_today' => $worked_today,
+            'checkout_date' => $checkout_date,
+            'has_attendance_today' => $hasAttendance,
+        ]);
+    }
+
+    public function usercheckin(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesison Error! Login Again',
+                'redirect' => '/login',
+            ]);
+        }
+        $request->validate([
+            'note' => 'nullable|string|max:255',
+        ]);
+
+        $today = Carbon::today();
+
+        $hasAttendance = Attendance::where('user_id', Auth::id())
+            ->where('date', '=', $today)
+            ->exists();
+
+        if ($hasAttendance) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User already checked in!',
+            ]);
+        }
+
+        $checkin_time = Carbon::now();
+        $eightff = Carbon::createFromTime(8, 50, 0);
+        $nine_am = Carbon::createFromTime(9, 20, 0);
+        $offtime = Carbon::createFromTime(18, 0, 0);
+
+        $status = null;
+
+        if ($checkin_time->greaterThan($offtime)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are already marked absent today!',
+            ]);
+        } elseif ($checkin_time->lessThan($eightff)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This is earlier than office time!',
+            ]);
+        } elseif ($checkin_time->greaterThan($nine_am)) {
+            $status = 'Late';
+        } elseif ($checkin_time->greaterThanOrEqualTo($eightff)) {
+            $status = 'Present';
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'You can not checkin at this time!',
+            ]);
+        }
+
+        Attendance::create([
+            'user_id' => Auth::id(),
+            'date' => Carbon::now(),
+            'check_in' => Carbon::now()->format('H:i:s'),
+            'status' => $status,
+            'note' => $request->note,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'You have successfully checked in!',
+        ]);
+    }
+
+    public function usercheckout (Request $request) 
+    {
+        if(!Auth::check()){
+            return response()->json([
+                'success'=> false,
+                'message' => 'Session Expired! Login again...',
+                'redirect' => '/logout'
+            ]);
+        }
+
+        $request->validate([
+            'out_method' => 'nullable|string|max:255',
+        ]);
+
+        $checkin_data = Attendance::where('user_id', Auth::id())->where('date', '=', Carbon::today())->first();
+
+        if(!$checkin_data) {
+            return response()->json([
+                'success'=> false,
+                'message' => 'No checkin data found! Login again...',
+                'redirect' => '/logout'
+            ]);
+        }
+
+        $checkIn_time = Carbon::parse($checkin_data->check_in);
+        $checkout_time = Carbon::now();
+
+        $workedHours = $checkIn_time->diffInHours($checkout_time);
+
+        if($workedHours < 8) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not allowed to checkout before 8 hours!'
+            ]);
+        }
+        $offtime = Carbon::createFromTime(6, 0, 0);
+        if($checkout_time->lessThan($offtime)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Office off time is 6 pm. You can not checkout before that!'
+            ]);
+        }
+
+        $checkin_data->check_out = $checkout_time;
+        $checkin_data->hours_worked = $workedHours;
+        $checkin_data->checkout_method = $request->out_method;
+
+        if ($checkin_data->save()) {
+            return response()->json([
+                'success'=> true,
+                'message' => 'User checked out! Logging out'
+            ]);
         }
     }
 }

@@ -400,6 +400,17 @@
             transition: all 0.3s ease;
         }
 
+        .btn:disabled {
+            background-color: gray;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled:hover{
+            background-color: grey;
+            border-color: grey;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
             border: none;
@@ -534,20 +545,42 @@
             align-items: center;
             gap: 5px;
         }
+
+        .inspinner {
+            display: inline-block;
+        }
+
+        .inspinner svg.spin {
+            animation: spin 1s linear infinite;
+        }
+        .outspinner {
+            display: inline-block;
+        }
+
+        .outspinner svg.spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
     @yield('css')
 </head>
 
 <body>
     <div class="settings-container holographic">
-        <x-chat-settings.settings-header :message="'Update your personal information and preferences'"
-            :heading="'Profile Settings'" />
-
         @yield('form-section')
+        <div id="notification-toast" class="notification-toast hidden">
+            <span id="notification-message"></span>
+        </div>
     </div>
 
     
 
+    @yield('js')
     <script>
         function showNotificationToast(code = 1, message = "Success", duration = 2000) {
             const toast = document.getElementById('notification-toast');
@@ -586,7 +619,6 @@
             }, duration);
         }
     </script>
-    @yield('js')
 </body>
 
 </html>

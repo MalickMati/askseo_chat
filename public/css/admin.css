@@ -56,6 +56,25 @@ body {
     overflow-y: auto;
 }
 
+.sidebar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+    border-radius: 10px;
+    border: 2px solid var(--secondary-bg);
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--accent-2), var(--accent-1));
+}
+
 .sidebar-header {
     margin-bottom: 40px;
     padding-bottom: 20px;

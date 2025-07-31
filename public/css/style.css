@@ -775,20 +775,29 @@ body {
 }
 
 .file-preview-container {
-    display: flex;
+    display: none;
     gap: 10px;
     padding: 5px;
     margin-top: 5px;
+    position: absolute;
+    width: auto;
+    height: auto;
+    bottom: 70px;
+    left: 10px;
+    border: 2px dashed;
+    border-radius: 20px;
 }
+
 .file-preview img.preview-thumb {
-    max-width: 40px;
-    max-height: 40px;
+    max-width: 200px;
+    max-height: 200px;
     border-radius: 5px;
     margin-right: 5px;
 }
 .file-preview p {
     font-size: 12px;
     margin: 0;
+    white-space: wrap;
 }
 
 .message-image-preview {

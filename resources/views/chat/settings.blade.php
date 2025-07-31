@@ -3,6 +3,8 @@
 @section('title', 'User | Settings')
 
 @section('form-section')
+    <x-chat-settings.settings-header :message="'Update your personal information and preferences'" :heading="'Profile Settings'" />
+    
     <form class="settings-form" id="settingsForm" autocomplete="off">
         <div class="form-section">
             <div class="section-title">
