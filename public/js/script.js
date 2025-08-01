@@ -6,7 +6,6 @@ let lastRenderedChatId = null;
 const lastMessageMap = {};
 const messageSound = new Audio('/sounds/sound.mp3');
 const chat_header = document.querySelector('.chat-header-info');
-// const pollingtime = 3000;
 
 // Pagination variables
 let currentPage = 1;
@@ -28,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeChatUI();
     setupEventListeners();
     refreshSidebar();
-    setInterval(pollForUpdates, 1000);
+    setInterval(pollForUpdates, pollingtime);
     if (window.innerWidth <= 900) {
         sidebar.classList.add('active');
     }

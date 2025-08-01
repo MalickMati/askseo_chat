@@ -130,7 +130,8 @@
             font-size: 0.95rem;
         }
 
-        .settings-form, .group-form {
+        .settings-form,
+        .group-form {
             padding: 30px;
         }
 
@@ -406,7 +407,7 @@
             cursor: not-allowed;
         }
 
-        .btn:disabled:hover{
+        .btn:disabled:hover {
             background-color: grey;
             border-color: grey;
         }
@@ -515,6 +516,7 @@
             opacity: 0;
             transition: all 0.4s ease;
             color: #fff;
+            user-select: none;
         }
 
         /* Colors by type */
@@ -553,6 +555,7 @@
         .inspinner svg.spin {
             animation: spin 1s linear infinite;
         }
+
         .outspinner {
             display: inline-block;
         }
@@ -566,6 +569,85 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* User Table Styles */
+        .table-container {
+            max-height: calc(40px * 10 + 60px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* Prevent text from wrapping in cells */
+        .users-table th,
+        .users-table td {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        /* Ensure table takes full width and enables horizontal scrolling if needed */
+        .users-table {
+            width: max-content;
+            min-width: 100%;
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .users-table thead th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .users-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .users-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        .users-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+            border-radius: 10px;
+            border: 2px solid var(--secondary-bg);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+            cursor: grab;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--accent-2), var(--accent-1));
+            transform: scale(1.1);
+            box-shadow: 0 0 8px var(--accent-1), 0 0 12px var(--accent-2);
+        }
+        @media(max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+        }
     </style>
     @yield('css')
 </head>
@@ -577,8 +659,6 @@
             <span id="notification-message"></span>
         </div>
     </div>
-
-    
 
     @yield('js')
     <script>
@@ -608,7 +688,6 @@
                     messageSpan.innerHTML = '<svg width="20" height="20" fill="#fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2m0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16m3.293 4.293L10 13.586l-1.293-1.293a1 1 0 1 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l6-6a1 1 0 1 0-1.414-1.414"/></svg>' + message;
                     break;
             }
-
 
             toast.classList.add('show');
             toast.classList.remove('hidden');

@@ -87,6 +87,30 @@
                     </button>
                 </div>
             </div>
+            <div class="form-group">
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Checkin</th>
+                                <th>Checkout</th>
+                                <th>Worked</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <tr>
+                                <td>2024/7/31</td>
+                                <td>Present</td>
+                                <td>09:00:00</td>
+                                <td>18:00:00</td>
+                                <td>9</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -108,6 +132,8 @@
         const targetLon = 73.115623;
         let locationFound = false;
         let watcherId = null;
+        let verified = false;
+        let wifiverified = false;
 
         document.addEventListener('DOMContentLoaded', function () {
             checkinbtn.disabled = true;
@@ -127,21 +153,34 @@
             checkoutbtn.addEventListener('click', function () {
                 checkoutbtn.disabled = true;
                 checkoutspinner.style.display = 'inline-block';
-                if(attended_today) {
+                if (attended_today) {
                     checkout_user();
                 } else {
                     showNotificationToast(2, 'User has not checked in today!');
                 }
             });
 
+            async function getLocationAndDoStuff() {
+                try {
+                    await locateonmap();
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            getLocationAndDoStuff();
+
             function checkin_user() {
                 if (confirm('Are you sure you want to checkin!')) {
                     const formData = new FormData();
-                    if (!atSite) {
-                        showNotificationToast(2, 'Shift to the wifi or change the network!');
+                    if (!atSite && !verified) {
+                        showNotificationToast(2, 'Shift to the wifi or change the network! <br/>You are not in office!', 7000);
+                        checkinspinner.style.display = 'none';
+                        checkin_button.disabled = false;
                         return;
+                    } else if(wifiverified) {
+                        formData.append('note', 'User Checkin through office wifi verification!');
                     } else {
-                        formData.append('note', 'User Checkin through location verification!')
+                        formData.append('note', 'User Checkin through location verification!');
                     }
                     fetch('/user-check-in', {
                         method: 'POST',
@@ -187,38 +226,35 @@
                         },
                         body: formData
                     })
-                    .then(res=> res.json())
-                    .then(data => {
-                        if(data.success) {
-                            showNotificationToast(1, 'User has checked out! Logging out now!');
-                            setTimeout(()=>{
-                                window.location.href = '/logout';
-                            }, 3000);
-                        } else {
-                            showNotificationToast(2, data.message, 5000);
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                showNotificationToast(1, 'User has checked out! Logging out now!');
+                                setTimeout(() => {
+                                    window.location.href = '/logout';
+                                }, 3000);
+                            } else {
+                                showNotificationToast(2, data.message, 5000);
+                                checkoutbtn.disabled = false;
+                                checkoutspinner.style.display = 'none';
+                                if (data.redirect) {
+                                    setTimeout(() => {
+                                        window.location.href = data.redirect;
+                                    }, 5000);
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            showNotificationToast(3, 'Error while checking out user!', 5000);
+                            console.error(err);
                             checkoutbtn.disabled = false;
                             checkoutspinner.style.display = 'none';
-                            if(data.redirect){
-                                setTimeout(() => {
-                                    window.location.href = data.redirect;
-                                }, 5000);
-                            }
-                        }
-                    })
-                    .catch(err => {
-                        showNotificationToast(3, 'Error while checking out user!', 5000);
-                        console.error(err);
-                        checkoutbtn.disabled = false;
-                        checkoutspinner.style.display = 'none';
-                    });
+                        });
                 }
             }
-
-            locateonmap();
         });
     </script>
     <script>
-
         function getDistanceInMeters(lat1, lon1, lat2, lon2) {
             const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -231,11 +267,13 @@
             return R * c;
         }
 
-        function locateonmap() {
+        async function locateonmap() {
+            await get_user_attendance();
             if (navigator.geolocation && !attended_today) {
                 showNotificationToast(1, "Searching you");
                 const timeout = setTimeout(() => {
-                    if (!locationFound) {
+                    if (!locationFound) get_ip();
+                    if (!locationFound && !verified) {
                         showNotificationToast(2, 'Shift to the wifi or change the network!');
                         navigator.geolocation.clearWatch(watcherId);
                         checkinspinner.style.display = 'none';
@@ -258,14 +296,8 @@
                                 showNotificationToast(1, 'You can checkin now!')
                                 checkinbtn.disabled = false;
                                 checkinspinner.style.display = 'none';
+                                verified = true;
                             }
-
-                            // console.log("✅ Accurate location found:");
-                            // console.log("Latitude:", lat);
-                            // console.log("Longitude:", lon);
-                            // console.log("Accuracy:", accuracy.toFixed(2) + "m");
-                            // console.log("Distance to site:", distance.toFixed(2) + "m");
-                            // console.log("At site:", atSite);
                         }
                     },
                     function (error) {
@@ -280,7 +312,7 @@
                         timeout: 10000
                     }
                 );
-            } else if(attended_today) {
+            } else if (attended_today) {
                 showNotificationToast(2, 'User already checked in!');
                 checkinspinner.style.display = 'none';
             } else {
@@ -288,6 +320,69 @@
                 showNotificationToast(3, 'Geolocation not supported by this browser', 5000);
                 checkinspinner.style.display = 'none';
             }
+        }
+    </script>
+    <script>
+        const tablebody = document.getElementById('attendanceTableBody');
+        async function get_user_attendance() {
+            tablebody.innerHTML = '';
+            showNotificationToast(1, 'Getting user data!');
+            setTimeout(() => {
+                fetch('/get-user-attendance', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            setTimeout(() => {
+                                showNotificationToast(1, data.message);
+                            }, 2000);
+                            update_table(data.records, tablebody);
+                        } else {
+                            setTimeout(()=>{
+                                showNotificationToast(2, data.message);
+                            },2000);
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showNotificationToast(3, 'Error while getting data!', 5000);
+                    });
+            }, 2000);
+        }
+        function update_table(data, table) {
+            data.forEach(record => {
+                const row = document.createElement('tr');
+                const dateOnly = record.formatted_date;
+                row.innerHTML = `
+    <td>${dateOnly}</td>
+    <td>${record.status}</td>
+    <td>${record.check_in}</td>
+    <td>${record.check_out ? record.check_out : 'Pending'}</td>
+    <td>${record.hours_worked ? record.hours_worked : 'Pending'}</td>
+`;
+                table.appendChild(row);
+            });
+        }
+
+        function get_ip() {
+            const allowedIPs = ['154.192.222.75', '58.65.223.213'];
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    if(allowedIPs.includes(data.ip)){
+                        showNotificationToast(1, 'Office wifi detected!');
+                        verified = true;
+                        wifiverified = true;
+                        checkinbtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error("Failed to get IP:", error);
+                });
         }
     </script>
 @endsection

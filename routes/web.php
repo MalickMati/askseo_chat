@@ -55,11 +55,8 @@ Route::get('/groups/{group}/members-list', [ChatController::class, 'membersList'
 Route::get('/group/{id}/members', [ChatController::class, 'getMembers']);
 Route::post('/groups/{group}/add-members', [ChatController::class, 'addMembers']);
 
-Route::get('/add/user', function() {return view('chat.add_user');});
-
-Route::get('/get-location', function () {return view('show-location');});
-
 Route::get('/user/attendance', [ShowPageController::class, 'showattendanceuser']);
 
 Route::post('/user-check-in', [ShowPageController::class, 'usercheckin']);
 Route::post('/check-out-user', [ShowPageController::class, 'usercheckout']);
+Route::post('/get-user-attendance', [ShowPageController::class,'getuserattendance']);

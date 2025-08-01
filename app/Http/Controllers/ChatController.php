@@ -33,11 +33,14 @@ class ChatController extends Controller
                 $query->where('sender_id', $receiver_id)
                     ->where('receiver_id', $sender->id);
             })
-            ->orderBy('created_at', 'desc')
-            ->paginate(50); // Load 50 messages per page
+            ->orderBy('created_at', 'desc') // get latest messages first
+            ->paginate(50);
+
+        // Reverse to show oldest first (like a normal chat window)
+        $reversed = collect($messages->items())->reverse()->values();
 
         return response()->json([
-            'messages' => $messages->items(),
+            'messages' => $reversed,
             'has_more' => $messages->hasMorePages(),
             'next_page' => $messages->nextPageUrl()
         ]);
@@ -45,14 +48,15 @@ class ChatController extends Controller
 
     public function getGroupMessages($groupId)
     {
-        // Load more messages for groups (300) since they tend to be more active
         $messages = Message::where('group_id', $groupId)
-            ->orderBy('sent_at', 'desc')
-            ->paginate(300);
+            ->orderBy('sent_at', 'desc') // get latest 100 messages
+            ->paginate(100);
+
+        $orderedMessages = collect($messages->items())->reverse()->values(); // reverse for chronological order
 
         return response()->json([
             'success' => true,
-            'messages' => $messages->items(),
+            'messages' => $orderedMessages,
             'has_more' => $messages->hasMorePages(),
             'next_page' => $messages->nextPageUrl()
         ]);

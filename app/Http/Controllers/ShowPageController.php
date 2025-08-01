@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
+use GrahamCampbell\ResultType\Success;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Message;
 use App\Models\Group;
+use Illuminate\Support\Facades\DB;
 use App\Models\GroupMember;
 use App\Models\Attandance;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +19,8 @@ use Illuminate\Support\Facades\Log;
 
 class ShowPageController extends Controller
 {
+    protected $officeips = ['154.192.222.75', '58.65.223.213'];
+
     public function showchatpage(Request $request)
     {
         if (!session("user_type")) {
@@ -417,12 +421,19 @@ class ShowPageController extends Controller
             ]);
         }
 
+        $note = $request->note;
+
+        $userIp = $request->ip();
+        if (!in_array($userIp, $this->officeips)) {
+            $note = 'User is verified using ip address of office.';
+        }
+
         Attendance::create([
             'user_id' => Auth::id(),
             'date' => Carbon::now(),
             'check_in' => Carbon::now()->format('H:i:s'),
             'status' => $status,
-            'note' => $request->note,
+            'notes' => $note,
         ]);
 
         return response()->json([
@@ -431,11 +442,11 @@ class ShowPageController extends Controller
         ]);
     }
 
-    public function usercheckout (Request $request) 
+    public function usercheckout(Request $request)
     {
-        if(!Auth::check()){
+        if (!Auth::check()) {
             return response()->json([
-                'success'=> false,
+                'success' => false,
                 'message' => 'Session Expired! Login again...',
                 'redirect' => '/logout'
             ]);
@@ -447,9 +458,9 @@ class ShowPageController extends Controller
 
         $checkin_data = Attendance::where('user_id', Auth::id())->where('date', '=', Carbon::today())->first();
 
-        if(!$checkin_data) {
+        if (!$checkin_data) {
             return response()->json([
-                'success'=> false,
+                'success' => false,
                 'message' => 'No checkin data found! Login again...',
                 'redirect' => '/logout'
             ]);
@@ -460,14 +471,14 @@ class ShowPageController extends Controller
 
         $workedHours = $checkIn_time->diffInHours($checkout_time);
 
-        if($workedHours < 8) {
+        if ($workedHours < 8) {
             return response()->json([
                 'success' => false,
                 'message' => 'You are not allowed to checkout before 8 hours!'
             ]);
         }
         $offtime = Carbon::createFromTime(6, 0, 0);
-        if($checkout_time->lessThan($offtime)) {
+        if ($checkout_time->lessThan($offtime)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Office off time is 6 pm. You can not checkout before that!'
@@ -480,9 +491,45 @@ class ShowPageController extends Controller
 
         if ($checkin_data->save()) {
             return response()->json([
-                'success'=> true,
+                'success' => true,
                 'message' => 'User checked out! Logging out'
             ]);
         }
+    }
+
+    public function getuserattendance()
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session Error! Login Again...',
+            ]);
+        }
+
+        $user_id = auth()->user()->id;
+
+        $records = Attendance::select([
+            DB::raw("DATE_FORMAT(date, '%Y-%m-%d') as formatted_date"),
+            'status',
+            'check_in',
+            'check_out',
+            'hours_worked',
+        ])
+            ->where('user_id', $user_id)
+            ->whereMonth('date', Carbon::now()->month)
+            ->orderBy('date', 'asc')
+            ->get();
+
+        if ($records->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No record found for this user!'
+            ]);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Table updated successfully!',
+            'records' => $records
+        ]);
     }
 }
