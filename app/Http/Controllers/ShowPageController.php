@@ -532,4 +532,67 @@ class ShowPageController extends Controller
             'records' => $records
         ]);
     }
+
+    public function showadminuserattendance()
+    {
+        if (!session()->has('super_admin_loged')) {
+            return redirect('/')->with('error', 'Only Super Admins are allowed!');
+        }
+
+        $all_users = User::get()->count();
+        $present_users = Attendance::where('status', '=', 'Present')->whereDate('date', Carbon::today())->count();
+        $absent_users = Attendance::where('status', '=', 'Absent')->whereDate('date', Carbon::today())->count();
+        $late_users = Attendance::where('status', '=', 'Late')->whereDate('date', Carbon::today())->count();
+
+        return view('chat.user_attendance', [
+            'name' => Auth::user()->name,
+            'img' => Auth::user()->image,
+            'email' => Auth::user()->email,
+            'total_users' => $all_users,
+            'present_users' => $present_users,
+            'absent_users' => $absent_users,
+            'late_users' => $late_users,
+        ]);
+    }
+
+    public function attendancetabledata(Request $request)
+    {
+        if (!Auth::user()->type === 'super_admin') {
+            return redirect('/')->with('error', 'Super Admin Session not found!');
+        }
+
+        $date = $request->input('date') ?? Carbon::today()->toDateString();
+
+        $records = Attendance::with('user')
+            ->whereDate('date', $date)
+            ->get();
+
+        $records = $records->map(function ($record) {
+            return [
+                'status' => $record->status,
+                'check_in' => $record->check_in ? Carbon::parse($record->check_in)->format('H:i') : 'Pending...',
+                'check_out' => $record->check_out ? Carbon::parse($record->check_out)->format('H:i') : 'Pending...',
+                'hours_worked' => $record->hours_worked ? $record->hours_worked . ' hours' : 'Pending...',
+                'username' => $record->user->name ?? 'Unknown User',
+                'useremail' => $record->user->email ?? 'Unknown Email',
+                'user_image' => $record->user->image
+                    ? asset($record->user->image)
+                    : asset('assets/images/default.png'),
+                'date' => Carbon::parse($record->date)->toDateString(),
+            ];
+        });
+
+        $total_present = $records->where('status', 'Present')->count();
+        $total_late = $records->where('status', 'Late')->count();
+        $total_absent = $records->where('status', 'Absent')->count();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Table updated successfully!',
+            'records' => $records,
+            'present_users' => $total_present,
+            'late_users'=> $total_late,
+            'absent_users'=> $total_absent,
+        ]);
+    }
 }

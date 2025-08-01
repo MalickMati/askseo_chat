@@ -26,6 +26,8 @@ Route::post('/verify/otp', [AuthController::class, 'verifyOtp'])->name('verify.o
 Route::post('/resend/otp', [AuthController::class,'resendOtp'])->name('resend.otp');
 
 Route::get('/admin', [ShowPageController::class, 'showadminuserpage'])->name('admin.users');
+Route::get('/admin/userattendance', [ShowPageController::class, 'showadminuserattendance']);
+Route::post('/admin/get-user-attendance', [ShowPageController::class, 'attendancetabledata']);
 
 Route::get('/fetch-users', [ShowPageController::class,'fetchUsers']);
 Route::post('/update-user-status', [ShowPageController::class,'update_user_status']);
