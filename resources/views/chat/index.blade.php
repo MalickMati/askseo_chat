@@ -3,7 +3,7 @@
 @section('content')
     <x-chat_sidebar :currentUser=$currentUser :users=$allusers :groups=$allgroups></x-chat_sidebar>
     <x-chat_area></x-chat_area>
-    <x-chat_sidebar_menu></x-chat_sidebar_menu>
+    <x-chat_sidebar_menu :tasks="$tasks"></x-chat_sidebar_menu>
     <x-chat_menu></x-chat_menu>
     <x-modals.add-user-in-group-modal />
     <x-modals.group-members-modal />

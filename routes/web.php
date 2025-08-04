@@ -28,6 +28,10 @@ Route::post('/resend/otp', [AuthController::class,'resendOtp'])->name('resend.ot
 Route::get('/admin', [ShowPageController::class, 'showadminuserpage'])->name('admin.users');
 Route::get('/admin/userattendance', [ShowPageController::class, 'showadminuserattendance']);
 Route::post('/admin/get-user-attendance', [ShowPageController::class, 'attendancetabledata']);
+Route::get('/admin/usertasks', [ShowPageController::class, 'admintaskpage']);
+Route::post('/delete-task', [ShowPageController::class, 'deletetask']);
+Route::get('/admin/assigntasks', [ShowPageController::class, 'adminassigntask']);
+Route::post('/admin/assigntasks', [ShowPageController::class, 'postadminassigntask'])->name('assign.task');
 
 Route::get('/fetch-users', [ShowPageController::class,'fetchUsers']);
 Route::post('/update-user-status', [ShowPageController::class,'update_user_status']);
@@ -67,3 +71,4 @@ Route::get('/chat/filter/private-messages', [ChatController::class, 'getPrivatef
 Route::get('/chat/filter/group-messages', [ChatController::class, 'getGroupfilter']);
 
 Route::get('/user/tasks', [ShowPageController::class,'usertaskspage']);
+Route::post('/tasks/update', [ShowPageController::class, 'updatetask']);

@@ -51,7 +51,9 @@
         </svg>
         <span class="task-label-wrapper">
             <span>Tasks</span>
-            <span class="task-badge">3</span>
+            @if ($tasks > 0)
+            <span class="task-badge">{{ $tasks }}</span>
+            @endif
         </span>
     </div>
     <div class="menu-item" onclick="window.location.href='/logout';">

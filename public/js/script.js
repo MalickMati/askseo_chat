@@ -603,130 +603,63 @@ function refreshSidebar() {
         .then(res => res.json())
         .then(data => {
             const chatList = document.querySelector('.chat-list');
-            const existingItems = {};
+            chatList.innerHTML = ''; // 🔁 Clear existing list
 
-            // Map existing chat items
-            chatList.querySelectorAll('.chat-item').forEach(item => {
-                const groupId = item.getAttribute('data-group-id');
-                const userId = item.getAttribute('data-user-id');
-                if (groupId) existingItems[`group_${groupId}`] = item;
-                if (userId) existingItems[`user_${userId}`] = item;
-            });
-
-            const processedKeys = new Set();
-
-            // === Update or insert group chats ===
+            // === Rebuild group chats ===
             data.groups.forEach(group => {
-                const key = `group_${group.id}`;
-                processedKeys.add(key);
-                const existing = existingItems[key];
-
-                if (existing) {
-                    // Only update content if something has changed
-                    const nameEl = existing.querySelector('.chat-name');
-                    const msgEl = existing.querySelector('.chat-last-message span');
-                    const timeEl = existing.querySelector('.chat-time');
-                    const badgeEl = existing.querySelector('.unread-badge');
-
-                    if (nameEl.textContent !== group.name) nameEl.textContent = group.name;
-                    if (msgEl.textContent !== (group.last_message || 'Group Chat')) msgEl.textContent = group.last_message || 'Group Chat';
-                    if (timeEl.textContent !== (group.last_time || '')) timeEl.textContent = group.last_time || '';
-
-                    if (group.unread_count > 0) {
-                        if (badgeEl) {
-                            badgeEl.textContent = group.unread_count;
-                        } else {
-                            const badge = document.createElement('div');
-                            badge.className = 'unread-badge';
-                            badge.textContent = group.unread_count;
-                            existing.appendChild(badge);
-                        }
-                    } else {
-                        if (badgeEl) badgeEl.remove();
-                    }
-                } else {
-                    // Create new DOM if not present
-                    chatList.insertAdjacentHTML('beforeend', `
-                        <div class="chat-item" data-group-id="${group.id}">
-                            <img src="/assets/images/logo.png" alt="Group" class="chat-avatar">
-                            <div class="chat-details">
-                                <div class="chat-name-time">
-                                    <span class="chat-name">${group.name}</span>
-                                    <span class="chat-time">${group.last_time || ''}</span>
-                                </div>
-                                <div class="chat-last-message">
-                                    <span>${group.last_message || 'Group Chat'}</span>
-                                </div>
-                            </div>
-                            ${group.unread_count > 0 ? `<div class="unread-badge">${group.unread_count}</div>` : ''}
+                const item = document.createElement('div');
+                item.className = 'chat-item';
+                item.setAttribute('data-group-id', group.id);
+                item.innerHTML = `
+                    <img src="/assets/images/logo.png" alt="Group" class="chat-avatar">
+                    <div class="chat-details">
+                        <div class="chat-name-time">
+                            <span class="chat-name">${group.name}</span>
+                            <span class="chat-time">${group.last_time || ''}</span>
                         </div>
-                    `);
-                }
+                        <div class="chat-last-message">
+                            <span>${group.last_message || 'Group Chat'}</span>
+                        </div>
+                    </div>
+                    ${group.unread_count > 0 ? `<div class="unread-badge">${group.unread_count}</div>` : ''}
+                `;
+                chatList.appendChild(item);
 
-                // Notification logic
-                const lastKey = `group_${group.id}`;
-                if (!isTabActive && group.last_message && group.unread_count > 0 && lastMessageMap[lastKey] !== group.last_message) {
-                    lastMessageMap[lastKey] = group.last_message;
+                const key = `group_${group.id}`;
+                if (!isTabActive && group.last_message && group.unread_count > 0 && lastMessageMap[key] !== group.last_message) {
+                    lastMessageMap[key] = group.last_message;
                     showChatNotification(group.name, group.last_message);
                 }
             });
 
-            // === Update or insert private chats ===
+            // === Rebuild private chats ===
             data.users.forEach(user => {
-                const key = `user_${user.id}`;
-                processedKeys.add(key);
-                const existing = existingItems[key];
-
-                if (existing) {
-                    const nameEl = existing.querySelector('.chat-name');
-                    const msgEl = existing.querySelector('.chat-last-message span');
-                    const timeEl = existing.querySelector('.chat-time');
-                    const avatarEl = existing.querySelector('.chat-avatar');
-                    const badgeEl = existing.querySelector('.unread-badge');
-
-                    if (nameEl.textContent !== user.username) nameEl.textContent = user.username;
-                    if (msgEl.textContent !== (user.last_message || '')) msgEl.textContent = user.last_message || '';
-                    if (timeEl.textContent !== (user.last_time || '')) timeEl.textContent = user.last_time || '';
-                    if (avatarEl.src !== user.img) avatarEl.src = user.img || 'assets/images/default.png';
-
-                    if (user.unread_count > 0) {
-                        if (badgeEl) {
-                            badgeEl.textContent = user.unread_count;
-                        } else {
-                            const badge = document.createElement('div');
-                            badge.className = 'unread-badge';
-                            badge.textContent = user.unread_count;
-                            existing.appendChild(badge);
-                        }
-                    } else {
-                        if (badgeEl) badgeEl.remove();
-                    }
-                } else {
-                    chatList.insertAdjacentHTML('beforeend', `
-                        <div class="chat-item" data-user-id="${user.id}">
-                            <img src="${user.img || 'assets/images/default.png'}" class="chat-avatar ${user.status}">
-                            <div class="chat-details">
-                                <div class="chat-name-time">
-                                    <span class="chat-name">${user.username}</span>
-                                    <span class="chat-time">${user.last_time || ''}</span>
-                                </div>
-                                <div class="chat-last-message">
-                                    <span>${user.last_message || ''}</span>
-                                </div>
-                            </div>
-                            ${user.unread_count > 0 ? `<div class="unread-badge">${user.unread_count}</div>` : ''}
+                const item = document.createElement('div');
+                item.className = 'chat-item';
+                item.setAttribute('data-user-id', user.id);
+                item.innerHTML = `
+                    <img src="${user.img || 'assets/images/default.png'}" class="chat-avatar ${user.status}">
+                    <div class="chat-details">
+                        <div class="chat-name-time">
+                            <span class="chat-name">${user.username}</span>
+                            <span class="chat-time">${user.last_time || ''}</span>
                         </div>
-                    `);
-                }
+                        <div class="chat-last-message">
+                            <span>${user.last_message || ''}</span>
+                        </div>
+                    </div>
+                    ${user.unread_count > 0 ? `<div class="unread-badge">${user.unread_count}</div>` : ''}
+                `;
+                chatList.appendChild(item);
 
-                const lastKey = `user_${user.id}`;
-                if (!isTabActive && user.last_message && user.unread_count > 0 && lastMessageMap[lastKey] !== user.last_message) {
-                    lastMessageMap[lastKey] = user.last_message;
+                const key = `user_${user.id}`;
+                if (!isTabActive && user.last_message && user.unread_count > 0 && lastMessageMap[key] !== user.last_message) {
+                    lastMessageMap[key] = user.last_message;
                     showChatNotification(user.username, user.last_message);
                 }
             });
 
-            // Reattach click handlers to all (new or old) chat items
+            // === Reattach click handlers ===
             document.querySelectorAll('.chat-item').forEach(item => {
                 item.onclick = function () {
                     const userName = this.querySelector('.chat-name').textContent;
@@ -764,23 +697,35 @@ function refreshSidebar() {
         .catch(err => console.error('Failed to refresh sidebar:', err));
 }
 
-
 function showChatNotification(title, body) {
-    if (Notification.permission === 'granted' && document.hidden) {
-        const notification = new Notification(title, {
-            body: body,
-            icon: icon,
-            tag: 'chat-notification'
-        });
+    // Only vibrate/sound if tab is hidden (i.e. backgrounded)
+    const isTabHidden = document.hidden;
 
+    if (isTabHidden) {
+        // Try vibration (most Android phones support it)
+        if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]);
+        }
+
+        // Play sound (if user has interacted previously)
         messageSound.play().catch(e => console.warn("Sound play failed:", e));
 
-        startTabFlash(`${title}: ${body}`);
+        // Desktop Notification
+        if (Notification.permission === 'granted') {
+            const notification = new Notification(title, {
+                body: body,
+                icon: icon,
+                tag: 'chat-notification'
+            });
 
-        notification.onclick = function () {
-            window.focus();
-            notification.close();
-        };
+            notification.onclick = function () {
+                window.focus();
+                notification.close();
+            };
+        }
+    } else {
+        // Foreground tab: play sound immediately
+        messageSound.play().catch(e => console.warn("Sound play failed:", e));
     }
 }
 

@@ -31,6 +31,14 @@
             <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentcolor" d="M7 11c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2s2 .9 2 2v1c0 1.1-.9 2-2 2m-2 6.993L9 18c.55 0 1-.45 1-1v-2c0-1.65-1.35-3-3-3s-3 1.35-3 3v2c0 .552.448.993 1 .993M19 18h-6a1 1 0 1 1 0-2h6a1 1 0 1 1 0 2m0-4h-6a1 1 0 1 1 0-2h6a1 1 0 1 1 0 2m0-4h-6a1 1 0 1 1 0-2h6a1 1 0 1 1 0 2"/><path fill="currentcolor" d="M22 2H2C.9 2 0 2.9 0 4v16c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2m0 17.5c0 .28-.22.5-.5.5h-19c-.28 0-.5-.22-.5-.5v-15c0-.28.22-.5.5-.5h19c.28 0 .5.22.5.5z"/></svg>
             <span>Attendance</span>
         </div>
+        <div class="nav-item {{ $activePage === 'tasks' ? 'active' : '' }}" onclick="window.location.href='/admin/usertasks'">
+            <svg width="20" height="20" viewBox="0 0 1200 1200" fill="currentcolor" xml:space="preserve"><path d="M0 131.213v234.375h1200V131.213zm752.856 58.009h385.62v118.359h-385.62zM0 482.849v234.375h1200V482.85zm487.72 58.008h650.757v118.358H487.72zM0 834.412v234.375h1200V834.412zm894.946 58.008h243.529v118.359H894.946z"/></svg>
+            <span>Task Management</span>
+        </div>
+        <div class="nav-item {{ $activePage === 'assigntasks' ? 'active' : '' }}" onclick="window.location.href='/admin/assigntasks'">
+            <svg width="20" height="20" viewBox="0 0 36 36" fill="currentcolor"><path class="clr-i-solid clr-i-solid-path-1" d="M29.29 4.95h-7.2a4.31 4.31 0 0 0-8.17 0H7a1.75 1.75 0 0 0-2 1.69v25.62a1.7 1.7 0 0 0 1.71 1.69h22.58A1.7 1.7 0 0 0 31 32.26V6.64a1.7 1.7 0 0 0-1.71-1.69m-18 3a1 1 0 0 1 1-1h3.44v-.63a2.31 2.31 0 0 1 4.63 0V7h3.44a1 1 0 0 1 1 1v1.8H11.25Zm14.52 9.23-9.12 9.12-5.24-5.24a1.4 1.4 0 0 1 2-2l3.26 3.26 7.14-7.14a1.4 1.4 0 1 1 2 2Z"/><path fill="none" d="M0 0h36v36H0z"/></svg>
+            <span>Assign Task</span>
+        </div>
     </div>
 
     <div class="nav-item" style="margin-top: auto;" onclick="window.location.href = '/logout';">

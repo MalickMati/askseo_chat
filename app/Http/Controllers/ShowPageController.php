@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
+use App\Models\Tasks;
 use GrahamCampbell\ResultType\Success;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -77,7 +78,9 @@ class ShowPageController extends Controller
             ];
         });
 
-        $allgroups = \App\Models\Group::all();
+        $allgroups = Group::all();
+
+        $tasks = Tasks::where('assigned_to', '=', Auth::user()->id)->where('status', '=', 'pending')->count();
 
         return view("chat.index", [
             'allgroups' => $allgroups,
@@ -88,6 +91,7 @@ class ShowPageController extends Controller
                 'img' => $varify_user->image ?? asset('assets/images/default.png'),
                 'status' => $varify_user->status_mode ?? 'offline',
             ],
+            'tasks' => $tasks,
         ]);
     }
 
@@ -355,7 +359,7 @@ class ShowPageController extends Controller
         $hasAttendance = Attendance::where('user_id', Auth::id())
             ->where('date', '=', $today)
             ->exists();
-        
+
         $user_id = auth()->user()->id;
 
         $records = Attendance::select([
@@ -606,17 +610,116 @@ class ShowPageController extends Controller
             'message' => 'Table updated successfully!',
             'records' => $records,
             'present_users' => $total_present,
-            'late_users'=> $total_late,
-            'absent_users'=> $total_absent,
+            'late_users' => $total_late,
+            'absent_users' => $total_absent,
         ]);
     }
 
-    public function usertaskspage() 
+    public function usertaskspage()
     {
-        if(!Auth::check()){
+        if (!Auth::check()) {
             return redirect('/')->with('error', 'Session not found!');
         }
 
-        
+        $alltasks = Tasks::where('assigned_to', '=', Auth::user()->id)->orderBy('status', 'asc')->get();
+
+        $tasks = $alltasks ?? [];
+
+        return view('chat.user_tasks', compact('tasks'));
+    }
+
+    public function updatetask(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Not authenticated user!',
+            ]);
+        }
+        $user = auth()->user();
+        $taskIds = $request->input('tasks', []);
+
+        Tasks::where('assigned_to', $user->id)->whereIn('id', $taskIds)->update(['status' => 'completed', 'completed_at' => Carbon::now()]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tasks updated successfully',
+        ]);
+    }
+
+    public function admintaskpage()
+    {
+        if (!Auth::check() && !session()->has('super_admin_loged')) {
+            return redirect('/')->with('error', 'Not authorized login again!');
+        }
+
+        $tasks = Tasks::with('user')->latest()->get();
+        $users = User::where('type', '!=', 'super_admin')->get();
+
+        return view('admin.manage-tasks', [
+            'tasks' => $tasks,
+            'users' => $users,
+            'activePage' => 'tasks',
+            'name' => Auth::user()->name,
+            'email' => Auth::user()->email,
+            'img' => Auth::user()->image,
+        ]);
+    }
+
+    public function deletetask(Request $request)
+    {
+        $task = Tasks::findOrFail($request->id);
+
+        if (!$task) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No record found!'
+            ]);
+        }
+
+        $task->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Task Deleted!'
+        ]);
+
+    }
+
+    public function adminassigntask()
+    {
+        if (!Auth::check() && !session()->has('super_admin_loged')) {
+            return redirect('/')->with('error', 'Authentication Error! Login Again!');
+        }
+
+        $users = User::where('type', '!=', 'super_admin')->get();
+
+        return view('admin.add-task', [
+            'users' => $users,
+            'activePage' => 'assigntasks',
+            'name' => Auth::user()->name,
+            'email' => Auth::user()->email,
+            'img' => Auth::user()->image,
+        ]);
+    }
+
+    public function postadminassigntask(Request $request)
+    {
+        $request->validate([
+            'assigned_to' => 'required|exists:users,id',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'due_date' => 'required|date',
+        ]);
+
+        Tasks::create([
+            'assigned_to' => $request->assigned_to,
+            'assigned_by' => Auth::user()->id,
+            'title' => $request->title,
+            'description' => $request->description,
+            'due_date' => $request->due_date,
+            'status' => 'pending',
+        ]);
+
+        return redirect()->back()->with('success', 'Task assigned successfully!');
     }
 }

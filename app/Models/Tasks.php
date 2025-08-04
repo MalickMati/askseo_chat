@@ -30,7 +30,8 @@ class Tasks extends Model
         return $this->belongsTo(User::class, 'assigned_by');
     }
 
-    public function assignee()
+
+    public function user()
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
