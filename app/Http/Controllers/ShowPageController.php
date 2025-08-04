@@ -355,6 +355,20 @@ class ShowPageController extends Controller
         $hasAttendance = Attendance::where('user_id', Auth::id())
             ->where('date', '=', $today)
             ->exists();
+        
+        $user_id = auth()->user()->id;
+
+        $records = Attendance::select([
+            DB::raw("DATE_FORMAT(date, '%Y-%m-%d') as formatted_date"),
+            'status',
+            'check_in',
+            'check_out',
+            'hours_worked',
+        ])
+            ->where('user_id', $user_id)
+            ->whereMonth('date', Carbon::now()->month)
+            ->orderBy('date', 'asc')
+            ->get();
 
         return view('chat.user_checkin_settings', [
             'username' => Auth::user()->name,
@@ -364,6 +378,7 @@ class ShowPageController extends Controller
             'worked_today' => $worked_today,
             'checkout_date' => $checkout_date,
             'has_attendance_today' => $hasAttendance,
+            'table_records' => $records,
         ]);
     }
 
@@ -594,5 +609,14 @@ class ShowPageController extends Controller
             'late_users'=> $total_late,
             'absent_users'=> $total_absent,
         ]);
+    }
+
+    public function usertaskspage() 
+    {
+        if(!Auth::check()){
+            return redirect('/')->with('error', 'Session not found!');
+        }
+
+        
     }
 }

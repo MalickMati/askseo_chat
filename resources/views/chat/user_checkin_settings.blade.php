@@ -100,13 +100,7 @@
                             </tr>
                         </thead>
                         <tbody id="attendanceTableBody">
-                            <tr>
-                                <td>2024/7/31</td>
-                                <td>Present</td>
-                                <td>09:00:00</td>
-                                <td>18:00:00</td>
-                                <td>9</td>
-                            </tr>
+
                         </tbody>
                     </table>
                 </div>
@@ -122,6 +116,7 @@
         @else
             const attended_today = true;
         @endif
+        const table_records = @json($table_records);
         let atSite = false;
         const checkinbtn = document.getElementById('checkin_button');
         const checkoutbtn = document.getElementById('checkout_button');
@@ -134,6 +129,7 @@
         let watcherId = null;
         let verified = false;
         let wifiverified = false;
+        const tablebody = document.getElementById('attendanceTableBody');
 
         document.addEventListener('DOMContentLoaded', function () {
             checkinbtn.disabled = true;
@@ -168,6 +164,8 @@
                 }
             }
             getLocationAndDoStuff();
+
+            update_table(table_records, tablebody);
 
             function checkin_user() {
                 if (confirm('Are you sure you want to checkin!')) {
@@ -268,7 +266,7 @@
         }
 
         async function locateonmap() {
-            await get_user_attendance();
+            // await get_user_attendance();
             if (navigator.geolocation && !attended_today) {
                 showNotificationToast(1, "Searching you");
                 const timeout = setTimeout(() => {
@@ -323,36 +321,36 @@
         }
     </script>
     <script>
-        const tablebody = document.getElementById('attendanceTableBody');
-        async function get_user_attendance() {
-            tablebody.innerHTML = '';
-            showNotificationToast(1, 'Getting user data!');
-            setTimeout(() => {
-                fetch('/get-user-attendance', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            setTimeout(() => {
-                                showNotificationToast(1, data.message);
-                            }, 2000);
-                            update_table(data.records, tablebody);
-                        } else {
-                            setTimeout(()=>{
-                                showNotificationToast(2, data.message);
-                            },2000);
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        showNotificationToast(3, 'Error while getting data!', 5000);
-                    });
-            }, 2000);
-        }
+        
+        // async function get_user_attendance() {
+        //     tablebody.innerHTML = '';
+        //     showNotificationToast(1, 'Getting user data!');
+        //     setTimeout(() => {
+        //         fetch('/get-user-attendance', {
+        //             method: 'POST',
+        //             headers: {
+        //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        //             }
+        //         })
+        //             .then(res => res.json())
+        //             .then(data => {
+        //                 if (data.success) {
+        //                     setTimeout(() => {
+        //                         showNotificationToast(1, data.message);
+        //                     }, 2000);
+        //                     update_table(data.records, tablebody);
+        //                 } else {
+        //                     setTimeout(()=>{
+        //                         showNotificationToast(2, data.message);
+        //                     },2000);
+        //                 }
+        //             })
+        //             .catch(err => {
+        //                 console.error(err);
+        //                 showNotificationToast(3, 'Error while getting data!', 5000);
+        //             });
+        //     }, 2000);
+        // }
         function update_table(data, table) {
             data.forEach(record => {
                 const row = document.createElement('tr');

@@ -56,9 +56,14 @@ Route::post('/groups/{group}/leave', [ChatController::class, 'leavegroup']);
 Route::get('/groups/{group}/members-list', [ChatController::class, 'membersList']);
 Route::get('/group/{id}/members', [ChatController::class, 'getMembers']);
 Route::post('/groups/{group}/add-members', [ChatController::class, 'addMembers']);
+Route::post('/groups/{group}/remove-members', [ChatController::class, 'removeMembers']);
 
 Route::get('/user/attendance', [ShowPageController::class, 'showattendanceuser']);
 
 Route::post('/user-check-in', [ShowPageController::class, 'usercheckin']);
 Route::post('/check-out-user', [ShowPageController::class, 'usercheckout']);
-Route::post('/get-user-attendance', [ShowPageController::class,'getuserattendance']);
+
+Route::get('/chat/filter/private-messages', [ChatController::class, 'getPrivatefilter']);
+Route::get('/chat/filter/group-messages', [ChatController::class, 'getGroupfilter']);
+
+Route::get('/user/tasks', [ShowPageController::class,'usertaskspage']);

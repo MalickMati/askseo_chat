@@ -5,8 +5,9 @@
     <x-chat_area></x-chat_area>
     <x-chat_sidebar_menu></x-chat_sidebar_menu>
     <x-chat_menu></x-chat_menu>
-    <x-add_user_in_group_modal></x-add_user_in_group_modal>
-    <x-group_members_modal></x-group_members_modal>
+    <x-modals.add-user-in-group-modal />
+    <x-modals.group-members-modal />
+    <x-modals.removemember />
 
     <div id="notification-toast" class="notification-toast hidden">
         <span id="notification-message"></span>

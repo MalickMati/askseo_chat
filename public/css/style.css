@@ -105,12 +105,14 @@ body {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    user-select: none;
 }
 
 .user-name .status {
     font-weight: 400;
     font-size: 12px;
     color: var(--online);
+    user-select: none;
 }
 
 .status.online {
@@ -242,11 +244,13 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    user-select: none;
 }
 
 .chat-time {
     font-size: 12px;
     color: var(--text-secondary);
+    user-select: none;
 }
 
 .chat-last-message {
@@ -255,6 +259,7 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    user-select: none;
 }
 
 /* Chat Area Styles */
@@ -336,6 +341,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    user-select: none;
 }
 
 .message-received .message-time {
@@ -362,6 +368,7 @@ body {
     font-weight: 500;
     margin-bottom: 5px;
     color: var(--accent-1);
+    user-select: none;
 }
 
 .input-area {
@@ -860,6 +867,7 @@ body {
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--accent-1) transparent;
+    user-select: none;
 }
 
 .custom-member-list li {
@@ -871,6 +879,7 @@ body {
     border-radius: 8px;
     border: 1px solid var(--border-color);
     transition: background 0.3s;
+    cursor: pointer;
 }
 
 .custom-member-list li:hover {
@@ -898,4 +907,52 @@ body {
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.85); }
     to { opacity: 1; transform: scale(1); }
+}
+
+.detected-link {
+    color: #00b8ff;
+}
+
+.file-preview-card {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    margin: 6px 0;
+    max-width: 320px;
+}
+.file-icon {
+    font-size: 24px;
+    margin-right: 10px;
+}
+.file-details a {
+    color: var(--accent-1);
+    font-weight: 500;
+    text-decoration: none;
+}
+.file-details small {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 12px;
+    user-select: none;
+}
+
+.task-label-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 85%;
+    justify-content: space-between;
+}
+
+.task-badge {
+    background-color: red;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 12px;
+    line-height: 1;
 }

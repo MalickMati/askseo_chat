@@ -14,10 +14,11 @@
 @endsection
 
 @section('form-section')
+<x-chat-settings.settings-header :message="'Create a new group by selecting members in the group'" :heading="'Add New Group'" />
     <form class="group-form" id="groupForm" autocomplete="off">
         <div class="form-section">
             <div class="section-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 6v4m0 4h.01"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>

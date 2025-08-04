@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GroupMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
@@ -46,6 +47,28 @@ class ChatController extends Controller
         ]);
     }
 
+    public function getPrivatefilter(Request $request)
+    {
+        $receiverId = $request->input('receiver_id');
+        $filter = $request->input('filter');
+
+        $query = Message::where(function ($query) use ($receiverId) {
+            $query->where(function ($q) use ($receiverId) {
+                $q->where('sender_id', auth()->id())
+                    ->where('receiver_id', $receiverId);
+            })->orWhere(function ($q) use ($receiverId) {
+                $q->where('sender_id', $receiverId)
+                    ->where('receiver_id', auth()->id());
+            });
+        });
+
+        $this->applyFilter($query, $filter); // query passed by reference
+
+        return response()->json([
+            'messages' => $query->latest()->paginate(20)
+        ]);
+    }
+
     public function getGroupMessages($groupId)
     {
         $messages = Message::where('group_id', $groupId)
@@ -62,6 +85,31 @@ class ChatController extends Controller
         ]);
     }
 
+    public function getGroupfilter(Request $request)
+    {
+        $groupId = $request->input('group_id');
+        $filter = $request->input('filter'); // 'media', 'documents', 'links'
+
+        $query = Message::where('group_id', $groupId);
+
+        $this->applyFilter($query, $filter);
+
+        return response()->json([
+            'messages' => $query->latest()->paginate(20)
+        ]);
+    }
+
+    private function applyFilter(&$query, $filter)
+    {
+        if ($filter === 'media') {
+            $query->whereIn('file_extension', ['mp3', 'mp4', 'mkv', 'avi', 'webm', 'wav', 'ogg']);
+        } elseif ($filter === 'documents') {
+            $query->whereIn('file_extension', ['pdf', 'docx', 'doc', 'txt', 'xls', 'xlsx', 'apk', 'zip', 'rar']);
+        } elseif ($filter === 'links') {
+            $query->where('message', 'REGEXP', 'https?://|www\\.|\\b[a-z0-9.-]+\\.(com|net|org|pk|me|info)\\b');
+        }
+    }
+
     public function sendGroupMessage(Request $request)
     {
         try {
@@ -76,6 +124,15 @@ class ChatController extends Controller
                 'error' => 'Validation failed',
                 'messages' => $e->errors()
             ], 422);
+        }
+
+        $verified_user = GroupMember::where('group_id', '=', $request->group_id)->where('user_id', '=', Auth::user()->id)->first();
+        if (!$verified_user) {
+            return response()->json([
+                'success'=> false,
+                'message'=> 'You are in the group! Redirecting...',
+                'redirect' => '/chat'
+            ]);
         }
 
         try {
@@ -441,6 +498,16 @@ class ChatController extends Controller
         if (!Auth::check()) {
             return redirect('/login')->with('error', 'Session Expired! Login Again');
         }
+
+        $verified_user = GroupMember::where('group_id', '=', $groupId)->where('user_id', '=', Auth::user()->id)->first();
+        if (!$verified_user) {
+            return response()->json([
+                'success'=> false,
+                'message'=> 'You are removed from group! Redirecting...',
+                'redirect' => '/chat'
+            ]);
+        }
+
         $currentUser = User::where('email', session('user_email'))->first();
 
         $unreadMessages = Message::where('group_id', $groupId)
@@ -532,4 +599,21 @@ class ChatController extends Controller
 
     }
 
+    public function removeMembers(Request $request, Group $group)
+    {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Session expired!'], 401);
+        }
+
+        $user = User::where('email', '=', session('user_email'))->first();
+
+        if (in_array($user->type, ['super_admin', 'admin', 'moderator'])) {
+            $userIds = $request->input('users', []);
+            $group->members()->detach($userIds);
+
+            return response()->json(['message' => 'Members removed successfully.']);
+        }
+
+        return response()->json(['message' => 'You do not have permission.'], 403);
+    }
 }
