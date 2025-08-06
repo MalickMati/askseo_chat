@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\MessageReadEvent;
-use App\Events\GroupMessageReceived;
-use App\Events\SentMessageEvent;
 use App\Models\GroupMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -132,8 +129,8 @@ class ChatController extends Controller
         $verified_user = GroupMember::where('group_id', '=', $request->group_id)->where('user_id', '=', Auth::user()->id)->first();
         if (!$verified_user) {
             return response()->json([
-                'success' => false,
-                'message' => 'You are in the group! Redirecting...',
+                'success'=> false,
+                'message'=> 'You are in the group! Redirecting...',
                 'redirect' => '/chat'
             ]);
         }
@@ -158,7 +155,6 @@ class ChatController extends Controller
                     'read_at' => now(),
                 ]);
 
-                event(new GroupMessageReceived($message));
                 $messages[] = $message;
             }
 
@@ -188,8 +184,6 @@ class ChatController extends Controller
                     'read_at' => now(),
                 ]);
 
-                event(new GroupMessageReceived($message));
-                
                 $messages[] = $message;
             }
 
@@ -313,7 +307,6 @@ class ChatController extends Controller
                         'type' => 'text',
                     ]);
                     $messages[] = $textMessage;
-                    event(new SentMessageEvent($request->message, auth()->user(), $request->receiver_id));
                 } catch (\Exception $e) {
                     Log::error('Text message save failed: ' . $e->getMessage());
                     return response()->json([
@@ -342,7 +335,6 @@ class ChatController extends Controller
                         'file_extension' => $extension,
                     ]);
 
-                    event(new SentMessageEvent('File Recieved!', auth()->user(), $request->receiver_id));
                     $messages[] = $fileMessage;
                 } catch (\Exception $e) {
                     Log::error('File upload or message save failed: ' . $e->getMessage());
@@ -486,42 +478,6 @@ class ChatController extends Controller
         ]);
     }
 
-    public function getAllUnreadMessages()
-    {
-        $currentUser = Auth::user();
-
-        if (!$currentUser) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
-        }
-
-        // 🔹 Unread personal messages
-        $unreadPersonalCount = Message::where('receiver_id', $currentUser->id)
-            ->whereNull('read_at')
-            ->count();
-
-        // 🔹 Groups the user is in
-        $groupIds = Group::whereHas('members', function ($q) use ($currentUser) {
-            $q->where('user_id', $currentUser->id);
-        })->pluck('id');
-
-        // 🔹 Unread group messages
-        $unreadGroupCount = DB::table('messages')
-            ->leftJoin('group_message_reads', function ($join) use ($currentUser) {
-                $join->on('messages.id', '=', 'group_message_reads.message_id')
-                    ->where('group_message_reads.user_id', '=', $currentUser->id);
-            })
-            ->whereIn('messages.group_id', $groupIds)
-            ->where('messages.sender_id', '!=', $currentUser->id)
-            ->whereNull('group_message_reads.read_at')
-            ->count();
-
-        return response()->json([
-            'unread_personal_count' => $unreadPersonalCount,
-            'unread_group_count' => $unreadGroupCount,
-            'total_unread' => $unreadPersonalCount + $unreadGroupCount
-        ]);
-    }
-
     public function markAsRead(Request $request)
     {
         if (!Auth::check()) {
@@ -534,7 +490,6 @@ class ChatController extends Controller
             ->where('receiver_id', $currentUser->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
-        event(new MessageReadEvent($senderId));
 
         return response()->json(['status' => 'success']);
     }
@@ -547,8 +502,8 @@ class ChatController extends Controller
         $verified_user = GroupMember::where('group_id', '=', $groupId)->where('user_id', '=', Auth::user()->id)->first();
         if (!$verified_user) {
             return response()->json([
-                'success' => false,
-                'message' => 'You are removed from group! Redirecting...',
+                'success'=> false,
+                'message'=> 'You are removed from group! Redirecting...',
                 'redirect' => '/chat'
             ]);
         }

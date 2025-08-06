@@ -14,6 +14,5 @@ class Group extends Model
     {
         return $this->belongsToMany(User::class, 'group_members');
     }
-    
     protected $fillable = ['name'];
 }

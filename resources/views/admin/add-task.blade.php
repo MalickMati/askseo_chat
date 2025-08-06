@@ -4,6 +4,14 @@
 
 @section('css')
     <style>
+        .main-content {
+            flex: 1;
+            padding: 40px 30px;
+            margin-left: 280px;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+        }
+
         .form-heading {
             font-size: 1.25rem;
             margin-bottom: 1rem;

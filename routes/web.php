@@ -1,13 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ShowPageController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\AttendanceController;
 
 Route::fallback(function () { abort(404);});
-// Route::fallback(function () { abort(500);});
+Route::fallback(function () { abort(500);});
 
 Route::get('/', [AuthController::class, 'showLogin']);
 
@@ -15,7 +15,7 @@ Route::get('auth/signup', [AuthController::class, 'showSignup'])->name('signup.f
 Route::post('/signup', [AuthController::class, 'signup'])->name('signup');
 
 Route::get('auth/login', [AuthController::class, 'showLogin'])->name('login.form');
-Route::get('login', [AuthController::class, 'showLogin']);
+Route::get('login', [AuthController::class, 'showLogin'])->name('login.form');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -32,7 +32,6 @@ Route::get('/admin/usertasks', [ShowPageController::class, 'admintaskpage']);
 Route::post('/delete-task', [ShowPageController::class, 'deletetask']);
 Route::get('/admin/assigntasks', [ShowPageController::class, 'adminassigntask']);
 Route::post('/admin/assigntasks', [ShowPageController::class, 'postadminassigntask'])->name('assign.task');
-Route::get('/unreadcount', [ChatController::class, 'getAllUnreadMessages']);
 
 Route::get('/fetch-users', [ShowPageController::class,'fetchUsers']);
 Route::post('/update-user-status', [ShowPageController::class,'update_user_status']);
@@ -73,5 +72,3 @@ Route::get('/chat/filter/group-messages', [ChatController::class, 'getGroupfilte
 
 Route::get('/user/tasks', [ShowPageController::class,'usertaskspage']);
 Route::post('/tasks/update', [ShowPageController::class, 'updatetask']);
-
-Broadcast::routes();

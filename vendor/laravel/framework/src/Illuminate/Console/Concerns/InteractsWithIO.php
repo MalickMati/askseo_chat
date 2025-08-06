@@ -19,6 +19,8 @@ trait InteractsWithIO
      * The console components factory.
      *
      * @var \Illuminate\Console\View\Components\Factory
+     *
+     * @internal This property is not meant to be used or overwritten outside the framework.
      */
     protected $components;
 
@@ -93,7 +95,7 @@ trait InteractsWithIO
     }
 
     /**
-     * Determine whether the option is defined in the command signature.
+     * Determine if the given option is present.
      *
      * @param  string  $name
      * @return bool
@@ -261,8 +263,8 @@ trait InteractsWithIO
         $bar->start();
 
         if (is_iterable($totalSteps)) {
-            foreach ($totalSteps as $key => $value) {
-                $callback($value, $bar, $key);
+            foreach ($totalSteps as $value) {
+                $callback($value, $bar);
 
                 $bar->advance();
             }

@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeChatUI();
     setupEventListeners();
     refreshSidebar();
-    // setInterval(pollForUpdates, pollingtime);
+    setInterval(pollForUpdates, pollingtime);
     if (window.innerWidth <= 900) {
         sidebar.classList.add('active');
     }
@@ -36,28 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.documentElement.classList.add('light-theme');
     }
 });
-
-setTimeout(() => {
-
-    Echo.private(`private-channel.${window.userId}`)
-        .listen('.message.received', (e) => {
-            if (activeReceiverId) {
-                loadMessages(activeReceiverId, false);
-            } else if (activeGroupId) {
-                loadMessages(activeGroupId, true);
-            }
-            refreshSidebar();
-        });
-    window.userGroups.forEach(groupId => {
-        Echo.private(`group.${groupId}`)
-            .listen('.group.message.received', (e) => {
-                if (activeGroupId === groupId) {
-                    loadMessages(groupId, true);
-                }
-                refreshSidebar();
-            });
-    });
-}, 500);
 
 window.addEventListener('load', () => {
     if ('Notification' in window && Notification.permission === 'default') {
@@ -256,25 +234,25 @@ function handleScroll() {
     }
 }
 
-// function pollForUpdates() {
-//     if (isMediaPlaying || isFilteredView) {
-//         refreshSidebar();
-//         return;
-//     }
+function pollForUpdates() {
+    if (isMediaPlaying || isFilteredView) {
+        refreshSidebar();
+        return;
+    }
 
-//     if (!isTabActive) {
-//         refreshSidebar();
-//         return;
-//     }
+    if (!isTabActive) {
+        refreshSidebar();
+        return;
+    }
 
-//     if (activeReceiverId) {
-//         checkForNewMessages(activeReceiverId, false);
-//     } else if (activeGroupId) {
-//         checkForNewMessages(activeGroupId, true);
-//     }
+    if (activeReceiverId) {
+        checkForNewMessages(activeReceiverId, false);
+    } else if (activeGroupId) {
+        checkForNewMessages(activeGroupId, true);
+    }
 
-//     refreshSidebar();
-// }
+    refreshSidebar();
+}
 
 function checkForNewMessages(chatId, isGroup = false) {
     const endpoint = isGroup
@@ -317,10 +295,8 @@ function loadMessages(chatId, isGroup = false) {
 
                 if (!isGroup) {
                     markMessagesAsRead(chatId);
-                    refreshSidebar();
                 } else {
                     markGroupMessagesAsRead(chatId);
-                    refreshSidebar();
                 }
 
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;

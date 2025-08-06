@@ -39,6 +39,7 @@ class ChainedBatch implements ShouldQueue
      * Create a new chained batch instance.
      *
      * @param  \Illuminate\Bus\PendingBatch  $batch
+     * @return void
      */
     public function __construct(PendingBatch $batch)
     {
@@ -57,7 +58,7 @@ class ChainedBatch implements ShouldQueue
     public static function prepareNestedBatches(Collection $jobs): Collection
     {
         return $jobs->map(fn ($job) => match (true) {
-            is_array($job) => static::prepareNestedBatches(new Collection($job))->all(),
+            is_array($job) => static::prepareNestedBatches(collect($job))->all(),
             $job instanceof Collection => static::prepareNestedBatches($job),
             $job instanceof PendingBatch => new ChainedBatch($job),
             default => $job,

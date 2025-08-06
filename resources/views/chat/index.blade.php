@@ -33,9 +33,9 @@
             @foreach ($allusers as $user)
                 {{ $user['id'] }}: "{{ addslashes($user['username']) }}",
             @endforeach
-                                    {{ $currentUser['id'] }}: "{{ addslashes($currentUser['username']) }}"
-                                };
-        const icon = "{{ asset('favicon.ico') }}";
+        {{ $currentUser['id'] }}: "{{ addslashes($currentUser['username']) }}"
+    };
+    const icon = "{{ asset('favicon.ico') }}";
 
     </script>
 

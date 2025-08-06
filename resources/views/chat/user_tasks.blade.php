@@ -18,6 +18,13 @@
             gap: 1rem;
         }
 
+        /* .task-item input[type="checkbox"]:checked+.task-content {
+                                                background-color: rgba(0, 255, 157, 0.1);
+                                                border-left: 4px solid var(--success);
+                                                border-radius: 0.5rem;
+                                                padding-left: 0.75rem;
+                                            } */
+
         .task-item:has(input[type="checkbox"]:checked) {
             background-color: rgba(0, 255, 157, 0.08);
             border-left: 4px solid var(--success);

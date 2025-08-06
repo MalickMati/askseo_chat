@@ -82,8 +82,6 @@ class ShowPageController extends Controller
 
         $tasks = Tasks::where('assigned_to', '=', Auth::user()->id)->where('status', '=', 'pending')->count();
 
-        $groupIds = GroupMember::where('user_id', Auth::id())->pluck('group_id')->toArray();
-
         return view("chat.index", [
             'allgroups' => $allgroups,
             'allusers' => $userList,
@@ -94,7 +92,6 @@ class ShowPageController extends Controller
                 'status' => $varify_user->status_mode ?? 'offline',
             ],
             'tasks' => $tasks,
-            'groupIds' => $groupIds,
         ]);
     }
 

@@ -17,7 +17,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="{{ asset('favicon.ico') }}">
     <script src="{{ asset('js/image_secure.js') }}"></script>
-    @vite('resources/js/app.js')
 </head>
 
 <body>
@@ -25,11 +24,6 @@
 
     <script>
         const pollingtime = 2000;
-    </script>
-    <script>
-        window.userId = {{ auth()->id() }};
-        window.userGroups = {!! auth()->user()->groups->pluck('id') !!};
-        
     </script>
 
     @yield('js')

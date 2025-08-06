@@ -971,23 +971,3 @@ body::-webkit-scrollbar-thumb:hover {
     align-items: center;
     gap: 5px;
 }
-
-.badge{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 70%;
-}
-
-#chatbar {
-    border-radius: 50%;
-    background-color: var(--error);
-    color: #fff;
-    width: 15px;
-    height: 15px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-}

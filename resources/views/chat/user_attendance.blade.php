@@ -7,7 +7,15 @@
 
 @section('css')
     <style>
-        
+        /* Attendance Specific Styles */
+        .main-content {
+            margin-left: 280px;
+            padding: 30px;
+            flex: 1;
+            background-color: var(--primary-bg);
+            height: 100vh;
+            overflow-y: auto;
+        }
 
         .attendance-header {
             display: flex;

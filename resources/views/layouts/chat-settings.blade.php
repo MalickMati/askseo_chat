@@ -15,11 +15,10 @@
     <meta name="theme-color" content="#6526DE">
 
     <!-- Apple-specific for iOS -->
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="ASK SEO CHAT APP">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="{{ asset('favicon.ico') }}">
-    @vite('resources/js/app.js')
     <style>
         :root {
             --primary-bg: #0f0f1a;
@@ -790,26 +789,6 @@
                 document.documentElement.classList.add('light-theme');
             }
         });
-    </script>
-     <script>
-        const messageSound = new Audio('/sounds/sound.mp3');
-        window.userId = {{ auth()->id() }};
-        window.userGroups = {!! auth()->user()->groups->pluck('id') !!};
-        setTimeout(() => {
-
-            Echo.private(`private-channel.${window.userId}`)
-                .listen('.message.received', (e) => {
-                    showNotificationToast(1, 'Personal Message Recieved!');
-                    messageSound.play().catch(e => console.warn("Sound play failed:", e));
-                });
-            window.userGroups.forEach(groupId => {
-                Echo.private(`group.${groupId}`)
-                    .listen('.group.message.received', (e) => {
-                        showNotificationToast(1, "Group Message Recieved!");
-                        messageSound.play().catch(e => console.warn("Sound play failed:", e));
-                    });
-            });
-        }, 500);
     </script>
 </body>
 
