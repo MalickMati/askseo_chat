@@ -28,11 +28,56 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeChatUI();
     setupEventListeners();
     refreshSidebar();
-    setInterval(pollForUpdates, pollingtime);
+    // setInterval(pollForUpdates, pollingtime);
     if (window.innerWidth <= 900) {
         sidebar.classList.add('active');
     }
+    if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light-theme');
+    }
 });
+
+setTimeout(() => {
+
+    Echo.private(`private-channel.${window.userId}`)
+        .listen('.message.received', (e) => {
+            if (activeReceiverId) {
+                loadMessages(activeReceiverId, false);
+            } else if (activeGroupId) {
+                loadMessages(activeGroupId, true);
+            }
+            refreshSidebar();
+        });
+    window.userGroups.forEach(groupId => {
+        Echo.private(`group.${groupId}`)
+            .listen('.group.message.received', (e) => {
+                if (activeGroupId === groupId) {
+                    loadMessages(groupId, true);
+                }
+                refreshSidebar();
+            });
+    });
+}, 500);
+
+window.addEventListener('load', () => {
+    if ('Notification' in window && Notification.permission === 'default') {
+        setTimeout(() => {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+                } else {
+                    console.log('Notification permission denied.');
+                }
+            });
+        }, 1000);
+    }
+});
+
+function toggleTheme() {
+    const root = document.documentElement;
+    root.classList.toggle('light-theme');
+    localStorage.setItem('theme', root.classList.contains('light-theme') ? 'light' : 'dark');
+}
 
 function initializeChatUI() {
     messagesContainer.messageIds = new Set();
@@ -68,6 +113,22 @@ function setupEventListeners() {
         }
     });
 
+    document.getElementById('messageInput').addEventListener('paste', async function (e) {
+        const clipboardItems = e.clipboardData.items;
+        for (let item of clipboardItems) {
+            if (item.type.indexOf("image") !== -1) {
+                const blob = item.getAsFile();
+                const fileInput = document.getElementById('fileInput');
+
+                const dt = new DataTransfer();
+                dt.items.add(blob);
+                fileInput.files = dt.files;
+
+                handleFileUpload.call(fileInput);
+                break;
+            }
+        }
+    });
 
     // Close sidebar
     document.getElementById('hamburgerclose').addEventListener('click', function () {
@@ -195,25 +256,25 @@ function handleScroll() {
     }
 }
 
-function pollForUpdates() {
-    if (isMediaPlaying || isFilteredView) {
-        refreshSidebar();
-        return;
-    }
+// function pollForUpdates() {
+//     if (isMediaPlaying || isFilteredView) {
+//         refreshSidebar();
+//         return;
+//     }
 
-    if (!isTabActive) {
-        refreshSidebar();
-        return;
-    }
+//     if (!isTabActive) {
+//         refreshSidebar();
+//         return;
+//     }
 
-    if (activeReceiverId) {
-        checkForNewMessages(activeReceiverId, false);
-    } else if (activeGroupId) {
-        checkForNewMessages(activeGroupId, true);
-    }
+//     if (activeReceiverId) {
+//         checkForNewMessages(activeReceiverId, false);
+//     } else if (activeGroupId) {
+//         checkForNewMessages(activeGroupId, true);
+//     }
 
-    refreshSidebar();
-}
+//     refreshSidebar();
+// }
 
 function checkForNewMessages(chatId, isGroup = false) {
     const endpoint = isGroup
@@ -256,8 +317,10 @@ function loadMessages(chatId, isGroup = false) {
 
                 if (!isGroup) {
                     markMessagesAsRead(chatId);
+                    refreshSidebar();
                 } else {
                     markGroupMessagesAsRead(chatId);
+                    refreshSidebar();
                 }
 
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -358,6 +421,7 @@ function createMessageElement(msg) {
             xls: '<svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1.5A1.5 1.5 0 0 1 2.5 0h8.207L14 3.293V13.5a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 1 13.5zm2 5.793V6H2v1.707l.793.793L2 9.293V11h1V9.707l.5-.5.5.5V11h1V9.293L4.207 8.5 5 7.707V6H4v1.293l-.5.5zM6 6h1v4h2v1H6zm7 0h-3v3h2v1h-2v1h3V8h-2V7h2z" fill="currentcolor"/></svg>',
             ppt: '<svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8h.5a.5.5 0 0 0 0-1H3zm4 0h.5a.5.5 0 0 0 0-1H7z" fill="currentcolor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1.5A1.5 1.5 0 0 1 2.5 0h8.207L14 3.293V13.5a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 1 13.5zM2 6h1.5a1.5 1.5 0 1 1 0 3H3v2H2zm4 0h1.5a1.5 1.5 0 1 1 0 3H7v2H6zm5 5h1V7h1V6h-3v1h1z" fill="currentcolor"/></svg>',
             sql: `<svg width="20" height="20" viewBox="0 0 32 32"><path d="M8.562 15.256A21.2 21.2 0 0 0 16 16.449a21.2 21.2 0 0 0 7.438-1.194c1.864-.727 2.525-1.535 2.525-2V9.7a10.4 10.4 0 0 1-2.084 1.076A22.3 22.3 0 0 1 16 12.078a22.4 22.4 0 0 1-7.879-1.3A10.3 10.3 0 0 1 6.037 9.7v3.55c0 .474.663 1.278 2.525 2.006m0 6.705a15.6 15.6 0 0 0 2.6.741 25 25 0 0 0 4.838.453 25 25 0 0 0 4.838-.452 15.6 15.6 0 0 0 2.6-.741c1.864-.727 2.525-1.535 2.525-2v-3.39a10.7 10.7 0 0 1-1.692.825A23.5 23.5 0 0 1 16 18.74a23.5 23.5 0 0 1-8.271-1.348 11 11 0 0 1-1.692-.825v3.393c0 .466.663 1.271 2.525 2.001M16 30c5.5 0 9.963-1.744 9.963-3.894v-2.837a10.5 10.5 0 0 1-1.535.762l-.157.063A23.5 23.5 0 0 1 16 25.445a23.4 23.4 0 0 1-8.271-1.351l-.157-.063a10.5 10.5 0 0 1-1.535-.762v2.837C6.037 28.256 10.5 30 16 30" style="fill:currentcolor"/><ellipse cx="16" cy="5.894" rx="9.963" ry="3.894" style="fill:currentcolor"/></svg>`,
+            apk: `<svg width="20" height="20" viewBox="0 0 550.801 550.801" xml:space="preserve" fill="currentcolor"><path d="M136.129 282.393c-2.753-9.181-5.508-20.656-7.802-29.834h-.453c-2.3 9.178-4.602 20.891-7.117 29.834l-9.181 32.827h34.188zm134.051-30.752c-7.117 0-11.934.686-14.468 1.377v45.67c2.987.686 6.661.918 11.712.918 18.597 0 30.062-9.408 30.062-25.255 0-14.223-9.872-22.71-27.306-22.71"/><path d="M488.427 197.019h-13.226v-63.822c0-.401-.063-.799-.116-1.205-.021-2.531-.828-5.023-2.563-6.993L366.325 3.694c-.031-.034-.063-.045-.084-.076-.633-.709-1.371-1.298-2.151-1.804-.232-.158-.465-.287-.707-.422a11.3 11.3 0 0 0-2.131-.896c-.2-.053-.379-.135-.58-.19A11 11 0 0 0 358.193 0H97.201c-11.918 0-21.6 9.693-21.6 21.601v175.413H62.378c-17.049 0-30.874 13.818-30.874 30.87v160.542c0 17.044 13.824 30.876 30.874 30.876h13.223V529.2c0 11.907 9.682 21.601 21.6 21.601h356.4c11.907 0 21.601-9.693 21.601-21.601V419.302h13.226c17.044 0 30.87-13.827 30.87-30.87V227.89c-.001-17.058-13.827-30.871-30.871-30.871M97.201 21.601h250.193v110.51c0 5.967 4.841 10.8 10.8 10.8h95.407v54.108h-356.4zm234.942 251.843c0 15.14-5.052 27.997-14.222 36.719-11.944 11.243-29.61 16.3-50.274 16.3-4.583 0-8.709-.237-11.929-.69v55.308h-34.652V228.456c10.79-1.83 25.943-3.206 47.274-3.206 21.584 0 36.951 4.126 47.287 12.382 9.866 7.807 16.516 20.661 16.516 35.812M95.516 381.08h-36.26l47.271-154.691h45.9l47.965 154.691h-37.645l-11.929-39.704h-44.292zm358.085 142.267h-356.4V419.302h356.4zM440.259 381.08l-37.874-66.783-13.31 16.295v50.488h-34.657V226.389h34.657v68.392h.686c3.438-5.964 7.113-11.47 10.558-16.985l35.121-51.411h42.909l-51.188 65.87 53.937 88.815H440.26z"/></svg>`,
             default: '<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 5C.895 5 0 5.9 0 7v14c0 1.1.895 2 2 2h20c1.105 0 2-.9 2-2V7c0-1.1-.895-2-2-2z" fill="currentcolor"/><path d="M3 1c-1.105 0-2 .9-2 2v14c0 1.1.895 2 2 2h18c1.105 0 2-.9 2-2V5c0-1.1-.895-2-2-2h-8l-3-2z" fill="currentcolor"/><path d="M23 14V6c0-1.1-.895-2-2-2H3c-1.105 0-2 .9-2 2v8z" fill="#bdc3c7"/><path d="M2 5C.895 5 0 5.9 0 7v13c0 1.1.895 2 2 2h20c1.105 0 2-.9 2-2V7c0-1.1-.895-2-2-2z" fill="currentcolor"/></svg>'
         };
         const icon = extIcons[ext.toLowerCase()] || extIcons.default;
@@ -448,7 +512,17 @@ function sendMessage() {
     const sendButton = document.getElementById('sendMessageBtn');
 
     if (!message && files.length === 0) return;
-    sendButton.innerHTML = `<span class="loader"></span>`;
+
+    // Inject circular progress UI
+    sendButton.innerHTML = `
+        <div class="circular-progress">
+            <svg viewBox="0 0 36 36">
+                <circle class="bg" cx="18" cy="18" r="16"></circle>
+                <circle class="progress" cx="18" cy="18" r="16" stroke-dasharray="100" stroke-dashoffset="100"></circle>
+            </svg>
+            <div class="percent">0%</div>
+        </div>
+    `;
     sendButton.disabled = true;
 
     const formData = new FormData();
@@ -464,57 +538,69 @@ function sendMessage() {
     }
 
     const route = activeGroupId ? "/group-messages/send" : "/messages/send";
+    const xhr = new XMLHttpRequest();
 
-    fetch(route, {
-        method: "POST",
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: formData
-    })
-        .then(async res => {
-            const contentType = res.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await res.text();
-                throw new Error(text);
-            }
-            return res.json();
-        })
-        .then(data => {
-            if (data.success) {
-                fileInput.value = '';
-                document.getElementById('filePreviewContainer').innerHTML = '';
-                document.getElementById('filePreviewContainer').style.display = 'none';
-                document.getElementById('messageInput').value = '';
-                sendButton.innerHTML = `
+    xhr.open("POST", route, true);
+    xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
+
+    const progressCircle = sendButton.querySelector(".progress");
+    const percentText = sendButton.querySelector(".percent");
+
+    xhr.upload.addEventListener("progress", function (e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            const dashoffset = 100 - percent;
+            progressCircle.style.strokeDashoffset = dashoffset;
+            percentText.textContent = `${percent}%`;
+        }
+    });
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            sendButton.innerHTML = `
                 <svg width="20" height="20" viewBox="0 0 15 15" fill="none">
                     <path d="M14.954.71a.5.5 0 0 1-.1.144L5.4 10.306l2.67 4.451a.5.5 0 0 0 .889-.06zM4.694 9.6.243 6.928a.5.5 0 0 1 .06-.889L14.293.045a.5.5 0 0 0-.146.101z" fill="#fff" />
                 </svg>`;
-                sendButton.disabled = false;
-
-                if (activeReceiverId) {
-                    checkForNewMessages(activeReceiverId, false);
-                } else if (activeGroupId) {
-                    checkForNewMessages(activeGroupId, true);
-                }
-            } else {
-                showNotificationToast(3, data.message || 'Failed to send message');
-                if (data.redirect) {
-                    setTimeout(() => {
-                        window.location.href = data.redirect;
-                    }, 2000);
-                }
-            }
-        })
-        .catch(err => {
-            console.error("Error sending message:", err);
-            showNotificationToast(3, 'Failed to send message');
-            sendButton.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 15 15" fill="none">
-                <path d="M14.954.71a.5.5 0 0 1-.1.144L5.4 10.306l2.67 4.451a.5.5 0 0 0 .889-.06zM4.694 9.6.243 6.928a.5.5 0 0 1 .06-.889L14.293.045a.5.5 0 0 0-.146.101z" fill="#fff" />
-            </svg>`;
             sendButton.disabled = false;
-        });
+
+            try {
+                const data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                    fileInput.value = '';
+                    document.getElementById('filePreviewContainer').innerHTML = '';
+                    document.getElementById('filePreviewContainer').style.display = 'none';
+                    document.getElementById('messageInput').value = '';
+
+                    if (activeReceiverId) {
+                        checkForNewMessages(activeReceiverId, false);
+                    } else if (activeGroupId) {
+                        checkForNewMessages(activeGroupId, true);
+                    }
+                } else {
+                    showNotificationToast(3, data.message || 'Failed to send message');
+                    if (data.redirect) {
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 2000);
+                    }
+                }
+            } catch (err) {
+                console.error("Invalid JSON response", err);
+                showNotificationToast(3, 'Unexpected server response');
+            }
+        }
+    };
+
+    xhr.onerror = function () {
+        sendButton.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 15 15" fill="none">
+            <path d="M14.954.71a.5.5 0 0 1-.1.144L5.4 10.306l2.67 4.451a.5.5 0 0 0 .889-.06zM4.694 9.6.243 6.928a.5.5 0 0 1 .06-.889L14.293.045a.5.5 0 0 0-.146.101z" fill="#fff" />
+        </svg>`;
+        sendButton.disabled = false;
+        showNotificationToast(3, 'Failed to send message');
+    };
+
+    xhr.send(formData);
 }
 
 function handleFileUpload() {

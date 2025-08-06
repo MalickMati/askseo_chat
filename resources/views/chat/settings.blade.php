@@ -4,7 +4,7 @@
 
 @section('form-section')
     <x-chat-settings.settings-header :message="'Update your personal information and preferences'" :heading="'Profile Settings'" />
-    
+
     <form class="settings-form" id="settingsForm" autocomplete="off">
         <div class="form-section">
             <div class="section-title">
@@ -37,7 +37,7 @@
 
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" class="form-control" value="{{ $email }}" required>
+                <input type="email" id="email" class="form-control" value="{{ $email }}" disabled>
                 <div class="error-message">Please enter a valid email address</div>
             </div>
         </div>
@@ -256,5 +256,6 @@
         });
     </script>
 
-    
+   
+
 @endsection

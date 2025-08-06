@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light-theme');
+    }
+
     // Password strength meter
     passwordInput.addEventListener('input', function () {
         const password = this.value;

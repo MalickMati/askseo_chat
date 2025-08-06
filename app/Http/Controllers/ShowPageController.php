@@ -82,6 +82,8 @@ class ShowPageController extends Controller
 
         $tasks = Tasks::where('assigned_to', '=', Auth::user()->id)->where('status', '=', 'pending')->count();
 
+        $groupIds = GroupMember::where('user_id', Auth::id())->pluck('group_id')->toArray();
+
         return view("chat.index", [
             'allgroups' => $allgroups,
             'allusers' => $userList,
@@ -92,6 +94,7 @@ class ShowPageController extends Controller
                 'status' => $varify_user->status_mode ?? 'offline',
             ],
             'tasks' => $tasks,
+            'groupIds' => $groupIds,
         ]);
     }
 
@@ -226,7 +229,6 @@ class ShowPageController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email,' . $user->id,
             'current_password' => 'nullable|string|min:8',
             'new_password' => 'nullable|string|min:8',
             'status' => 'nullable|in:online,offline,away,do_not_disturb,be_right_back',
@@ -239,7 +241,6 @@ class ShowPageController extends Controller
 
         // Update basic fields
         $user->name = $request->name;
-        $user->email = $request->email;
 
         // Handle password change
         if ($request->filled('current_password') && $request->filled('new_password')) {

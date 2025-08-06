@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title')</title>
@@ -14,10 +15,11 @@
     <meta name="theme-color" content="#6526DE">
 
     <!-- Apple-specific for iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="ASK SEO CHAT APP">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="{{ asset('favicon.ico') }}">
+    @vite('resources/js/app.js')
     @yield('css')
 </head>
 
@@ -33,6 +35,7 @@
 
 
     <script>
+        const messageSound = new Audio('/sounds/sound.mp3');
         function showNotificationToast(code = 1, message = "Success", duration = 2000) {
             const toast = document.getElementById('notification-toast');
             const messageSpan = document.getElementById('notification-message');
@@ -68,6 +71,46 @@
                 setTimeout(() => toast.classList.add('hidden'), 400);
             }, duration);
         }
+        document.addEventListener('DOMContentLoaded', function () {
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.classList.add('light-theme');
+            }
+        });
+    </script>
+    <script>
+        setTimeout(() => {
+            window.userId = {{ auth()->id() }};
+
+            Echo.private(`private-channel.${window.userId}`)
+                .listen('.message.received', (e) => {
+                    showNotificationToast(1, 'Message Recieved: ' + e.message, 5000);
+                    fetchUnreadCount();
+                    messageSound.play().catch(e => console.warn("Sound play failed:", e));
+                });
+        }, 500);
+    </script>
+    <script>
+        function fetchUnreadCount() {
+            const chatbar = document.getElementById('chatbar');
+            fetch('/unreadcount')
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch');
+                    return response.json();
+                })
+                .then(data => {
+                    if(data.total_unread > 0){
+                        chatbar.innerHTML = data.total_unread;
+                        chatbar.style.display = 'flex';
+                    } else {
+                        chatbar.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching unread messages:', error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchUnreadCount());
     </script>
     @yield('js')
 </body>

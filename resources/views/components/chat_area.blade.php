@@ -37,7 +37,7 @@
             <input type="file" id="fileInput" name="file" style="display: none;" />
 
         <div class="input-container">
-            <input type="text" id="messageInput" placeholder="Type a message...">
+            <input type="text" id="messageInput" placeholder="Type a message..." maxlength="999">
         </div>
 
         <button class="send-button" id="sendMessageBtn">

@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
@@ -14,10 +15,11 @@
     <meta name="theme-color" content="#6526DE">
 
     <!-- Apple-specific for iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="ASK SEO CHAT APP">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="{{ asset('favicon.ico') }}">
+    @vite('resources/js/app.js')
     <style>
         :root {
             --primary-bg: #0f0f1a;
@@ -31,6 +33,21 @@
             --online: #00ff9d;
             --away: #ffbe0b;
             --brb: #f5ff00;
+            --offline: #ff3860;
+        }
+
+        .light-theme {
+            --primary-bg: #ffffff;
+            --secondary-bg: #f9f9f9;
+            --accent-1: #4e54c8;
+            --accent-2: #8f94fb;
+            --text-primary: #1a1a1a;
+            --text-secondary: #555555;
+            --success: #00c980;
+            --error: #ff3860;
+            --online: #00c980;
+            --away: #ffbe0b;
+            --brb: #ffea00;
             --offline: #ff3860;
         }
 
@@ -295,6 +312,68 @@
             background-color: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
+        .light-theme .settings-container::before {
+            background: linear-gradient(135deg, rgba(78, 84, 200, 0.05), rgba(143, 148, 251, 0.05));
+        }
+
+        .light-theme .logo {
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .light-theme .settings-header p {
+            color: rgba(0, 0, 0, 0.7);
+        }
+
+        .light-theme .section-title {
+            color: var(--text-primary);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .light-theme .form-control {
+            background-color: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--text-primary);
+        }
+
+        .light-theme .form-control:focus {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 2px rgba(78, 84, 200, 0.2);
+        }
+
+        .light-theme .status-option label {
+            background-color: rgba(0, 0, 0, 0.03);
+            color: var(--text-primary);
+        }
+
+        .light-theme .status-option input:checked+label {
+            background-color: rgba(78, 84, 200, 0.05);
+            border: 1px solid rgba(78, 84, 200, 0.2);
+        }
+
+        .light-theme .avatar-preview {
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .light-theme .avatar-upload-btn {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px dashed rgba(0, 0, 0, 0.2);
+            color: var(--text-primary);
+        }
+
+        .light-theme .avatar-upload-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: var(--accent-1);
+        }
+
+        .light-theme .user-list {
+            background-color: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
 
         .user-list::-webkit-scrollbar {
             width: 8px;
@@ -625,6 +704,7 @@
             padding: 15px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         ::-webkit-scrollbar {
             height: 10px;
             width: 10px;
@@ -650,6 +730,7 @@
             transform: scale(1.1);
             box-shadow: 0 0 8px var(--accent-1), 0 0 12px var(--accent-2);
         }
+
         @media(max-width: 768px) {
             .table-container {
                 overflow-x: auto;
@@ -704,6 +785,31 @@
                 setTimeout(() => toast.classList.add('hidden'), 400);
             }, duration);
         }
+        document.addEventListener('DOMContentLoaded', function () {
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.classList.add('light-theme');
+            }
+        });
+    </script>
+     <script>
+        const messageSound = new Audio('/sounds/sound.mp3');
+        window.userId = {{ auth()->id() }};
+        window.userGroups = {!! auth()->user()->groups->pluck('id') !!};
+        setTimeout(() => {
+
+            Echo.private(`private-channel.${window.userId}`)
+                .listen('.message.received', (e) => {
+                    showNotificationToast(1, 'Personal Message Recieved!');
+                    messageSound.play().catch(e => console.warn("Sound play failed:", e));
+                });
+            window.userGroups.forEach(groupId => {
+                Echo.private(`group.${groupId}`)
+                    .listen('.group.message.received', (e) => {
+                        showNotificationToast(1, "Group Message Recieved!");
+                        messageSound.play().catch(e => console.warn("Sound play failed:", e));
+                    });
+            });
+        }, 500);
     </script>
 </body>
 

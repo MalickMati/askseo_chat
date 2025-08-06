@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light-theme');
+    }
+
     // Form submission
     loginForm.addEventListener('submit', async function (e) {
         e.preventDefault();

@@ -275,7 +275,7 @@
                 if (!isSearching) {
                     fetchUsers();
                 }
-            }, 10000);
+            }, 2000);
             window.addEventListener('DOMContentLoaded', fetchUsers);
         });
     </script>
@@ -306,9 +306,9 @@
                         .then(data => {
                             if (data.success) {
                                 showNotification(1, "User Status Changed");
-                                setInterval(() => {
-                                    window.location.reload();
-                                }, 1000);
+                                // setInterval(() => {
+                                //     window.location.reload();
+                                // }, 1000);
                             } else {
                                 showNotification(3, 'Error changing status: ' + data.message);
                             }
